@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
+/*
+  MVP mobile-first. Se fuerza tema claro para máxima legibilidad al sol en
+  campo y consistencia entre dispositivos de los coordinadores.
+*/
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4f4f5; /* zinc-100 */
+  --foreground: #18181b; /* zinc-900 */
 }
 
 @theme inline {
@@ -12,15 +16,22 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: light;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  /* Respeta el notch / barra de gestos en móviles. */
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Los <select> e <input type=number> no hacen zoom en iOS con >=16px. */
+input,
+select,
+button,
+textarea {
+  font-size: 16px;
 }
