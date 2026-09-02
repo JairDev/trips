@@ -122,7 +122,7 @@ export default function RegistroForm({
 
   return (
     <form onSubmit={handleSubmit} className={CARD}>
-      <h2 className={SECTION_TITLE}>Registro exprés</h2>
+      <h2 className={SECTION_TITLE}>Registrar pasajero</h2>
 
       <fieldset disabled={disabled} className="mt-3 space-y-3.5">
         <label className="block">
@@ -250,7 +250,7 @@ export default function RegistroForm({
             ? "Autobús completo"
             : enviando
               ? "Registrando..."
-              : "Registrar pasajero"}
+              : "Registrar"}
         </button>
       </fieldset>
     </form>

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatMonto } from "@/lib/format";
-import { BTN_PRIMARY, CAMPO, CARD, SECTION_TITLE } from "@/lib/ui";
+import { CARD, SECTION_TITLE } from "@/lib/ui";
 
 interface FilaProps {
   etiqueta: string;
@@ -16,6 +16,11 @@ interface FilaProps {
   onGuardar: (n: number) => Promise<void>;
 }
 
+/**
+ * Fila etiqueta / valor. Al pulsar el valor, se convierte en un input en el
+ * MISMO sitio (sin botones ni cambios de layout). Enter o salir del campo
+ * confirma; Escape cancela.
+ */
 function FilaEditable({
   etiqueta,
   valor,
@@ -31,6 +36,12 @@ function FilaEditable({
   const [texto, setTexto] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const cancelarRef = useRef(false);
+
+  useEffect(() => {
+    if (error && editando) inputRef.current?.focus();
+  }, [error, editando]);
 
   function abrir() {
     setTexto(valor ? String(valor) : "");
@@ -38,14 +49,21 @@ function FilaEditable({
     setEditando(true);
   }
 
-  function cerrar() {
+  function cancelar() {
     setEditando(false);
     setError(null);
   }
 
-  async function guardar() {
+  async function confirmar() {
+    if (guardando) return;
+
     let n = Number(texto.replace(",", "."));
     if (entero) n = Math.trunc(n);
+
+    if (texto.trim() === "" || n === valor) {
+      cancelar();
+      return;
+    }
     if (!Number.isFinite(n) || n < min) {
       setError("Valor inválido.");
       return;
@@ -55,6 +73,7 @@ function FilaEditable({
       setError(msg);
       return;
     }
+
     setGuardando(true);
     setError(null);
     try {
@@ -72,66 +91,54 @@ function FilaEditable({
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm font-medium text-body">{etiqueta}</p>
-          {ayuda && !editando && (
-            <p className="mt-0.5 text-sm text-stone">{ayuda}</p>
-          )}
+          {ayuda && <p className="mt-0.5 text-sm text-stone">{ayuda}</p>}
         </div>
-        {!editando && (
-          <div className="flex shrink-0 items-baseline gap-3">
-            <span className="text-xl font-bold tabular-nums text-ink">
-              {mostrar(valor)}
-            </span>
-            <button
-              type="button"
-              onClick={abrir}
-              className="text-sm text-accent underline underline-offset-2 active:text-accent-hover"
-            >
-              [editar]
-            </button>
-          </div>
+
+        {editando ? (
+          <input
+            ref={inputRef}
+            type="number"
+            inputMode={entero ? "numeric" : "decimal"}
+            min={min}
+            step={step}
+            autoFocus
+            disabled={guardando}
+            value={texto}
+            onChange={(e) => setTexto(e.target.value)}
+            onFocus={(e) => e.currentTarget.select()}
+            onBlur={() => {
+              if (cancelarRef.current) {
+                cancelarRef.current = false;
+                cancelar();
+              } else {
+                confirmar();
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                inputRef.current?.blur();
+              } else if (e.key === "Escape") {
+                e.preventDefault();
+                cancelarRef.current = true;
+                inputRef.current?.blur();
+              }
+            }}
+            className="w-28 shrink-0 rounded-sm border border-ink bg-canvas px-2 py-0.5 text-right text-xl font-bold tabular-nums text-ink outline-none disabled:opacity-50"
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={abrir}
+            aria-label={`Editar ${etiqueta.toLowerCase()}`}
+            className="w-28 shrink-0 rounded-sm px-2 py-0.5 text-right text-xl font-bold tabular-nums text-ink underline decoration-hairline decoration-dashed underline-offset-4 active:bg-surface-soft"
+          >
+            {mostrar(valor)}
+          </button>
         )}
       </div>
-
-      {editando && (
-        <div className="mt-2.5">
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              inputMode={entero ? "numeric" : "decimal"}
-              min={min}
-              step={step}
-              autoFocus
-              value={texto}
-              onChange={(e) => setTexto(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  guardar();
-                } else if (e.key === "Escape") {
-                  cerrar();
-                }
-              }}
-              className={`${CAMPO} flex-1 tabular-nums`}
-              placeholder="0"
-            />
-            <button
-              type="button"
-              onClick={guardar}
-              disabled={guardando}
-              className={`${BTN_PRIMARY} shrink-0 px-3.5`}
-            >
-              {guardando ? "..." : "Guardar"}
-            </button>
-            <button
-              type="button"
-              onClick={cerrar}
-              className="min-h-11 shrink-0 px-2 text-sm text-mute active:text-ink"
-            >
-              Cancelar
-            </button>
-          </div>
-          {error && <p className="mt-1.5 text-sm text-danger-hover">{error}</p>}
-        </div>
+      {error && (
+        <p className="mt-1.5 text-right text-sm text-danger-hover">[x] {error}</p>
       )}
     </div>
   );
@@ -148,9 +155,8 @@ interface Props {
 }
 
 /**
- * Ajustes del viaje (capacidad del bus y precio del paquete) editables en línea,
- * cada uno en su propia fila a lo ancho completo para que el editor no se
- * solape. Al cambiar el precio, el backend recalcula el pendiente de todos los
+ * Ajustes del viaje (capacidad del bus y precio del paquete) editables en el
+ * sitio. Al cambiar el precio, el backend recalcula el pendiente de todos los
  * pasajeros.
  */
 export default function AjustesViaje({
@@ -186,7 +192,7 @@ export default function AjustesViaje({
           etiqueta="Paquete por persona"
           ayuda="De aquí sale el monto pendiente"
           valor={precioPorPersona}
-          mostrar={(v) => (v > 0 ? formatMonto(v) : "sin definir")}
+          mostrar={(v) => (v > 0 ? formatMonto(v) : "definir")}
           step="0.01"
           min={0}
           onGuardar={onGuardarPrecio}
