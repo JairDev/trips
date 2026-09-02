@@ -124,11 +124,12 @@ export default function DashboardPage() {
     [trip, passengers.length],
   );
 
-  function exportar() {
-    // Placeholder hasta la Fase 3 (SheetJS en cliente).
-    alert(
-      `Exportación a Excel disponible en la Fase 3.\n${registrados} pasajeros en la lista.`,
-    );
+  async function exportar() {
+    if (!trip || passengers.length === 0) return;
+    // Carga diferida de SheetJS: no entra en el bundle inicial (ahorra datos
+    // móviles hasta que el coordinador realmente exporta).
+    const { exportarPasajerosXlsx } = await import("@/lib/export-excel");
+    exportarPasajerosXlsx(passengers, trip.destino, trip.fecha_salida);
   }
 
   // --- Estados de carga / error -----------------------------------------
