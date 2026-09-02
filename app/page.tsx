@@ -2,11 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ExportFab from "@/components/ExportFab";
+import PaqueteBar from "@/components/PaqueteBar";
 import PasajerosList from "@/components/PasajerosList";
 import RegistroForm from "@/components/RegistroForm";
 import SeatCounterHeader from "@/components/SeatCounterHeader";
 import ZonasPanel from "@/components/ZonasPanel";
-import { fetchPasajeros, fetchViajeActivo, insertPasajero } from "@/lib/api";
+import {
+  actualizarPrecioViaje,
+  fetchPasajeros,
+  fetchViajeActivo,
+  insertPasajero,
+} from "@/lib/api";
 import type { NuevoPasajero, Passenger, Trip } from "@/lib/types";
 import { agruparPorZona } from "@/lib/zonas";
 import { getSupabaseClient } from "@/utils/supabase/client";
@@ -56,20 +62,22 @@ export default function DashboardPage() {
     };
   }, []);
 
+  const tripId = trip?.id_viaje;
+
   // --- Suscripción Realtime a la tabla passengers -------------------------
   useEffect(() => {
-    if (!trip) return;
+    if (!tripId) return;
 
     const supabase = getSupabaseClient();
     const canal = supabase
-      .channel(`passengers:${trip.id_viaje}`)
+      .channel(`passengers:${tripId}`)
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "passengers",
-          filter: `id_viaje=eq.${trip.id_viaje}`,
+          filter: `id_viaje=eq.${tripId}`,
         },
         (payload) => {
           setPassengers((prev) => {
@@ -98,11 +106,43 @@ export default function DashboardPage() {
     return () => {
       supabase.removeChannel(canal);
     };
-  }, [trip]);
+  }, [tripId]);
+
+  // --- Realtime del viaje (precio del paquete editado por otro coordinador) --
+  useEffect(() => {
+    if (!tripId) return;
+
+    const supabase = getSupabaseClient();
+    const canal = supabase
+      .channel(`trip:${tripId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "trips",
+          filter: `id_viaje=eq.${tripId}`,
+        },
+        (payload) => setTrip(payload.new as Trip),
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(canal);
+    };
+  }, [tripId]);
 
   const registrados = passengers.length;
   const lleno = trip ? registrados >= trip.puestos_totales : false;
   const zonas = useMemo(() => agruparPorZona(passengers), [passengers]);
+  const recaudado = useMemo(
+    () => passengers.reduce((s, p) => s + p.monto_abonado, 0),
+    [passengers],
+  );
+  const porCobrar = useMemo(
+    () => passengers.reduce((s, p) => s + p.monto_pendiente, 0),
+    [passengers],
+  );
 
   // --- Alta desde el Formulario Exprés (con validación de cupos) ----------
   const agregarPasajero = useCallback(
@@ -122,6 +162,17 @@ export default function DashboardPage() {
       );
     },
     [trip, passengers.length],
+  );
+
+  const guardarPrecio = useCallback(
+    async (nuevo: number) => {
+      if (!trip) throw new Error("No hay viaje activo.");
+      const actualizado = await actualizarPrecioViaje(trip.id_viaje, nuevo);
+      setTrip(actualizado);
+      // El backend recalcula el pendiente de cada pasajero; refrescamos la lista.
+      setPassengers(await fetchPasajeros(trip.id_viaje));
+    },
+    [trip],
   );
 
   async function exportar() {
@@ -179,7 +230,17 @@ export default function DashboardPage() {
       />
 
       <main className="mx-auto w-full max-w-md flex-1 space-y-4 px-4 pt-4 pb-28">
-        <RegistroForm onSubmit={agregarPasajero} disabled={lleno} />
+        <PaqueteBar
+          precioPorPersona={trip.precio_por_persona}
+          recaudado={recaudado}
+          porCobrar={porCobrar}
+          onGuardarPrecio={guardarPrecio}
+        />
+        <RegistroForm
+          onSubmit={agregarPasajero}
+          precioPorPersona={trip.precio_por_persona}
+          disabled={lleno}
+        />
         <ZonasPanel zonas={zonas} />
         <PasajerosList passengers={passengers} />
       </main>

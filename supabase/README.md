@@ -6,6 +6,12 @@
 2. `SQL Editor` → `New query`.
 3. Pega el contenido completo de [`schema.sql`](./schema.sql) y pulsa **Run**.
 
+> **¿Ya habías aplicado una versión anterior del `schema.sql`?**
+> Ejecuta además [`migrations/0001_precio_paquete.sql`](./migrations/0001_precio_paquete.sql)
+> una vez: añade `trips.precio_por_persona` y los triggers que calculan
+> `monto_pendiente` / `estado_pago` automáticamente. Ajusta el precio dentro
+> del script.
+
 Esto crea:
 
 | Objeto | Descripción |

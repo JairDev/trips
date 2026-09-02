@@ -32,7 +32,8 @@ npm run dev        # http://localhost:3000
 | `supabase/schema.sql` | Tablas `trips` / `passengers`, constraints, índices, publicación Realtime y RLS de prueba. Crea un viaje vacío, sin pasajeros. |
 | `supabase/seed.sql` | Datos de ejemplo opcionales para una demo. |
 | `utils/supabase/client.ts` | Cliente singleton del navegador. |
-| `lib/api.ts` | `fetchViajeActivo`, `fetchPasajeros`, `insertPasajero`. |
+| `lib/api.ts` | `fetchViajeActivo`, `fetchPasajeros`, `insertPasajero`, `actualizarPrecioViaje`. |
+| `lib/pagos.ts` | Cálculo de `monto_pendiente` y `estado_pago` a partir del precio del paquete. |
 | `lib/zonas.ts` | `agruparPorZona()` — conteo por zona de recogida (función pura). |
 | `lib/export-excel.ts` | Reporte `.xlsx` en cliente con SheetJS (carga diferida). |
 | `app/page.tsx` | Dashboard: carga inicial, suscripción Realtime, alta con validación de cupos. |

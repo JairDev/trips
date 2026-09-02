@@ -1,12 +1,16 @@
 "use client";
 
 import { useId, useState } from "react";
+import { formatMonto } from "@/lib/format";
 import {
-  ESTADOS_PAGO,
+  calcularPendiente,
+  derivarEstadoPago,
+  redondear2,
+} from "@/lib/pagos";
+import {
   GRUPOS,
   METODOS_PAGO,
   ZONAS_SUGERIDAS,
-  type EstadoPago,
   type GrupoOrigen,
   type MetodoPago,
   type NuevoPasajero,
@@ -14,6 +18,7 @@ import {
 
 interface Props {
   onSubmit: (nuevo: NuevoPasajero) => void | Promise<void>;
+  precioPorPersona: number;
   disabled?: boolean;
 }
 
@@ -42,9 +47,7 @@ function Segmento<T extends string>({
           disabled={disabled}
           onClick={() => onChange(op)}
           className={`min-h-11 rounded-lg px-2 text-sm font-medium transition-colors ${
-            valor === op
-              ? "bg-white text-teal-800 shadow-sm"
-              : "text-zinc-600"
+            valor === op ? "bg-white text-teal-800 shadow-sm" : "text-zinc-600"
           }`}
         >
           {op}
@@ -54,32 +57,35 @@ function Segmento<T extends string>({
   );
 }
 
-export default function RegistroForm({ onSubmit, disabled = false }: Props) {
+const ESTADO_ESTILO: Record<string, string> = {
+  Pendiente: "bg-rose-100 text-rose-700",
+  Abonado: "bg-amber-100 text-amber-700",
+  Completo: "bg-emerald-100 text-emerald-700",
+};
+
+export default function RegistroForm({
+  onSubmit,
+  precioPorPersona,
+  disabled = false,
+}: Props) {
   const zonasListId = useId();
   const [nombre, setNombre] = useState("");
   const [grupo, setGrupo] = useState<GrupoOrigen>(GRUPOS[0]);
   const [zona, setZona] = useState("");
   const [metodo, setMetodo] = useState<MetodoPago>(METODOS_PAGO[0]);
-  const [estado, setEstado] = useState<EstadoPago>("Pendiente");
   const [abonado, setAbonado] = useState("");
-  const [pendiente, setPendiente] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
 
-  const montoAbonadoBloqueado = estado === "Pendiente";
-  const montoPendienteBloqueado = estado === "Completo";
-
-  function cambiarEstado(nuevo: EstadoPago) {
-    setEstado(nuevo);
-    if (nuevo === "Pendiente") setAbonado("");
-    if (nuevo === "Completo") setPendiente("");
-  }
+  // Cálculo automático a partir del precio del paquete.
+  const montoAbonado = redondear2(Math.max(0, Number(abonado) || 0));
+  const montoPendiente = calcularPendiente(precioPorPersona, montoAbonado);
+  const estadoPago = derivarEstadoPago(precioPorPersona, montoAbonado);
+  const pagoDeMas = montoAbonado > precioPorPersona && precioPorPersona > 0;
 
   function limpiar() {
     setNombre("");
     setAbonado("");
-    setPendiente("");
-    setEstado("Pendiente");
     setError(null);
   }
 
@@ -101,9 +107,9 @@ export default function RegistroForm({ onSubmit, disabled = false }: Props) {
       grupo_origen: grupo,
       zona_recogida: zona.trim(),
       metodo_pago: metodo,
-      estado_pago: estado,
-      monto_abonado: montoAbonadoBloqueado ? 0 : Number(abonado) || 0,
-      monto_pendiente: montoPendienteBloqueado ? 0 : Number(pendiente) || 0,
+      estado_pago: estadoPago,
+      monto_abonado: montoAbonado,
+      monto_pendiente: montoPendiente,
     };
 
     setEnviando(true);
@@ -184,57 +190,63 @@ export default function RegistroForm({ onSubmit, disabled = false }: Props) {
           <span className="mb-1 block text-sm font-medium text-zinc-700">
             Modalidad de pago
           </span>
-          <Segmento
-            opciones={METODOS_PAGO}
-            valor={metodo}
-            onChange={setMetodo}
-          />
+          <Segmento opciones={METODOS_PAGO} valor={metodo} onChange={setMetodo} />
         </div>
 
-        <div>
+        <label className="block">
           <span className="mb-1 block text-sm font-medium text-zinc-700">
-            Estado de pago
+            Monto abonado
           </span>
-          <Segmento
-            opciones={ESTADOS_PAGO}
-            valor={estado}
-            onChange={cambiarEstado}
+          <input
+            type="number"
+            inputMode="decimal"
+            min={0}
+            step="0.01"
+            className={CAMPO}
+            value={abonado}
+            onChange={(e) => setAbonado(e.target.value)}
+            placeholder="0.00"
           />
-        </div>
+        </label>
 
-        <div className="grid grid-cols-2 gap-3">
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium text-zinc-700">
-              Monto abonado
+        {/* Resumen calculado automáticamente */}
+        <div className="rounded-xl bg-zinc-50 p-3 text-sm">
+          <div className="flex justify-between text-zinc-600">
+            <span>Paquete por persona</span>
+            <span className="tabular-nums">
+              {precioPorPersona > 0 ? formatMonto(precioPorPersona) : "—"}
             </span>
-            <input
-              type="number"
-              inputMode="decimal"
-              min={0}
-              step="0.01"
-              className={CAMPO}
-              value={montoAbonadoBloqueado ? "0" : abonado}
-              onChange={(e) => setAbonado(e.target.value)}
-              disabled={montoAbonadoBloqueado}
-              placeholder="0.00"
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium text-zinc-700">
-              Monto pendiente
+          </div>
+          <div className="mt-1 flex justify-between text-zinc-600">
+            <span>Abonado</span>
+            <span className="tabular-nums text-emerald-700">
+              {formatMonto(montoAbonado)}
             </span>
-            <input
-              type="number"
-              inputMode="decimal"
-              min={0}
-              step="0.01"
-              className={CAMPO}
-              value={montoPendienteBloqueado ? "0" : pendiente}
-              onChange={(e) => setPendiente(e.target.value)}
-              disabled={montoPendienteBloqueado}
-              placeholder="0.00"
-            />
-          </label>
+          </div>
+          <div className="mt-1 flex justify-between font-medium text-zinc-800">
+            <span>Pendiente por cancelar</span>
+            <span className="tabular-nums text-rose-600">
+              {formatMonto(montoPendiente)}
+            </span>
+          </div>
+          <div className="mt-2 flex items-center justify-between">
+            <span className="text-zinc-500">Estado</span>
+            <span
+              className={`rounded-full px-2 py-0.5 text-xs font-semibold ${ESTADO_ESTILO[estadoPago]}`}
+            >
+              {estadoPago}
+            </span>
+          </div>
+          {precioPorPersona === 0 && (
+            <p className="mt-2 text-xs text-amber-700">
+              Define el precio del paquete arriba para calcular el pendiente.
+            </p>
+          )}
+          {pagoDeMas && (
+            <p className="mt-2 text-xs text-amber-700">
+              El monto abonado supera el precio del paquete.
+            </p>
+          )}
         </div>
 
         {error && (

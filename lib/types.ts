@@ -25,6 +25,7 @@ export interface Trip {
   destino: string;
   fecha_salida: string; // 'YYYY-MM-DD'
   puestos_totales: number;
+  precio_por_persona: number; // precio del paquete por excursionista
 }
 
 export interface Passenger {

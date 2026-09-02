@@ -27,6 +27,26 @@ export async function fetchViajeActivo(): Promise<Trip | null> {
   return (recientes?.[0] as Trip | undefined) ?? null;
 }
 
+/**
+ * Actualiza el precio del paquete del viaje. Un trigger en Postgres recalcula
+ * `monto_pendiente` y `estado_pago` de todos los pasajeros de ese viaje, y esos
+ * cambios llegan a los coordinadores por Realtime.
+ */
+export async function actualizarPrecioViaje(
+  idViaje: string,
+  precioPorPersona: number,
+): Promise<Trip> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("trips")
+    .update({ precio_por_persona: precioPorPersona })
+    .eq("id_viaje", idViaje)
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data as Trip;
+}
+
 export async function fetchPasajeros(idViaje: string): Promise<Passenger[]> {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
