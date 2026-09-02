@@ -10,7 +10,7 @@ interface Props {
  */
 export default function ZonasPanel({ zonas }: Props) {
   return (
-    <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+    <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
       <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
         Control de zonas
       </h2>

@@ -79,7 +79,7 @@ export default function PasajerosList({ passengers, onEliminar }: Props) {
   );
 
   return (
-    <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+    <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
       <div className="flex items-baseline justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
           Lista maestra

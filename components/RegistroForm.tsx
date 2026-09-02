@@ -128,13 +128,13 @@ export default function RegistroForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm"
+      className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5"
     >
       <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide">
         Registro exprés
       </h2>
 
-      <fieldset disabled={disabled} className="mt-3 space-y-3">
+      <fieldset disabled={disabled} className="mt-4 space-y-4">
         <label className="block">
           <span className="mb-1 block text-sm font-medium text-zinc-700">
             Nombre completo
@@ -210,40 +210,49 @@ export default function RegistroForm({
         </label>
 
         {/* Resumen calculado automáticamente */}
-        <div className="rounded-xl bg-zinc-50 p-3 text-sm">
-          <div className="flex justify-between text-zinc-600">
-            <span>Paquete por persona</span>
-            <span className="tabular-nums">
-              {precioPorPersona > 0 ? formatMonto(precioPorPersona) : "—"}
+        <div className="rounded-xl border border-zinc-200 bg-zinc-50/70 p-3.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+              Resumen de pago
             </span>
-          </div>
-          <div className="mt-1 flex justify-between text-zinc-600">
-            <span>Abonado</span>
-            <span className="tabular-nums text-emerald-700">
-              {formatMonto(montoAbonado)}
-            </span>
-          </div>
-          <div className="mt-1 flex justify-between font-medium text-zinc-800">
-            <span>Pendiente por cancelar</span>
-            <span className="tabular-nums text-rose-600">
-              {formatMonto(montoPendiente)}
-            </span>
-          </div>
-          <div className="mt-2 flex items-center justify-between">
-            <span className="text-zinc-500">Estado</span>
             <span
               className={`rounded-full px-2 py-0.5 text-xs font-semibold ${ESTADO_ESTILO[estadoPago]}`}
             >
               {estadoPago}
             </span>
           </div>
+
+          <div className="mt-2.5 flex items-end justify-between gap-3">
+            <div>
+              <p className="text-xs text-zinc-500">Pendiente por cancelar</p>
+              <p className="text-2xl font-bold tabular-nums text-rose-600">
+                {formatMonto(montoPendiente)}
+              </p>
+            </div>
+            <dl className="text-right text-xs text-zinc-500">
+              <div className="flex justify-between gap-3">
+                <dt>Paquete</dt>
+                <dd className="tabular-nums text-zinc-700">
+                  {precioPorPersona > 0 ? formatMonto(precioPorPersona) : "—"}
+                </dd>
+              </div>
+              <div className="mt-0.5 flex justify-between gap-3">
+                <dt>Abonado</dt>
+                <dd className="tabular-nums text-emerald-700">
+                  {formatMonto(montoAbonado)}
+                </dd>
+              </div>
+            </dl>
+          </div>
+
           {precioPorPersona === 0 && (
-            <p className="mt-2 text-xs text-amber-700">
-              Define el precio del paquete arriba para calcular el pendiente.
+            <p className="mt-2.5 text-xs text-amber-700">
+              Define el precio del paquete en “Ajustes del viaje” para calcular el
+              pendiente.
             </p>
           )}
           {pagoDeMas && (
-            <p className="mt-2 text-xs text-amber-700">
+            <p className="mt-2.5 text-xs text-amber-700">
               El monto abonado supera el precio del paquete.
             </p>
           )}
