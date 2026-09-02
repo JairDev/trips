@@ -29,7 +29,8 @@ npm run dev        # http://localhost:3000
 
 | Ruta | Qué hace |
 | --- | --- |
-| `supabase/schema.sql` | Tablas `trips` / `passengers`, constraints, índices, publicación Realtime y RLS de prueba. |
+| `supabase/schema.sql` | Tablas `trips` / `passengers`, constraints, índices, publicación Realtime y RLS de prueba. Crea un viaje vacío, sin pasajeros. |
+| `supabase/seed.sql` | Datos de ejemplo opcionales para una demo. |
 | `utils/supabase/client.ts` | Cliente singleton del navegador. |
 | `lib/api.ts` | `fetchViajeActivo`, `fetchPasajeros`, `insertPasajero`. |
 | `lib/zonas.ts` | `agruparPorZona()` — conteo por zona de recogida (función pura). |

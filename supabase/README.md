@@ -16,7 +16,20 @@ Esto crea:
 | Publicación `supabase_realtime` | La tabla `passengers` queda emitiendo `INSERT/UPDATE/DELETE` en tiempo real. |
 | RLS | Políticas **públicas de prueba** (lectura + escritura para `anon`). Endurecer antes de producción — ver notas al final de `schema.sql`. |
 
-El script es **idempotente** y trae un *seed* del viaje `Pico Naiguatá` con 5 pasajeros de ejemplo.
+El script es **idempotente**. Crea **un viaje vacío** (`Pico Naiguatá`) para que
+la app tenga contexto al arrancar, pero **no inserta pasajeros**: la lista arranca
+vacía para tus pruebas.
+
+### Datos de ejemplo (opcional)
+
+Si quieres poblar la lista para una demo, ejecuta [`seed.sql`](./seed.sql) aparte.
+Para volver a vaciarla:
+
+```sql
+delete from public.passengers
+where id_viaje = (select id_viaje from public.trips
+                  where destino = 'Pico Naiguatá' limit 1);
+```
 
 ## 2. Verificar Realtime
 
