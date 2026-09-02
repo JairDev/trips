@@ -16,7 +16,7 @@ export default function ExportFab({ onClick, disabled = false }: Props) {
       onClick={onClick}
       disabled={disabled}
       aria-label="Exportar lista a Excel"
-      className="fixed bottom-5 right-5 z-40 flex size-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 active:bg-emerald-700 disabled:opacity-40"
+      className="fixed bottom-5 right-5 z-40 flex size-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 active:bg-emerald-700 disabled:opacity-40 lg:hidden"
       style={{ marginBottom: "env(safe-area-inset-bottom)" }}
     >
       <svg

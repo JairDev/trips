@@ -125,9 +125,9 @@ export default function PasajerosList({ passengers, onEliminar }: Props) {
         ))}
       </div>
 
-      <ul className="mt-3 space-y-2">
+      <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
         {visibles.length === 0 && (
-          <li className="py-6 text-center text-sm text-zinc-400">
+          <li className="py-6 text-center text-sm text-zinc-400 sm:col-span-2">
             Sin pasajeros para este filtro.
           </li>
         )}

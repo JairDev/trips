@@ -243,25 +243,34 @@ export default function DashboardPage() {
         fechaSalida={trip.fecha_salida}
         puestosTotales={trip.puestos_totales}
         registrados={registrados}
+        onExport={exportar}
+        exportDisabled={registrados === 0}
       />
 
-      <main className="mx-auto w-full max-w-md flex-1 space-y-4 px-4 pt-4 pb-28">
-        <AjustesViaje
-          puestosTotales={trip.puestos_totales}
-          precioPorPersona={trip.precio_por_persona}
-          registrados={registrados}
-          recaudado={recaudado}
-          porCobrar={porCobrar}
-          onGuardarPuestos={guardarPuestos}
-          onGuardarPrecio={guardarPrecio}
-        />
-        <RegistroForm
-          onSubmit={agregarPasajero}
-          precioPorPersona={trip.precio_por_persona}
-          disabled={lleno}
-        />
-        <ZonasPanel zonas={zonas} />
-        <PasajerosList passengers={passengers} onEliminar={quitarPasajero} />
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pt-4 pb-28 lg:px-8 lg:pt-6 lg:pb-12">
+        <div className="mx-auto grid max-w-2xl gap-4 lg:max-w-none lg:grid-cols-[360px_minmax(0,1fr)] lg:items-start lg:gap-6">
+          <div className="space-y-4 lg:sticky lg:top-24 lg:max-h-[calc(100dvh-7rem)] lg:space-y-6 lg:overflow-y-auto lg:pr-1">
+            <AjustesViaje
+              puestosTotales={trip.puestos_totales}
+              precioPorPersona={trip.precio_por_persona}
+              registrados={registrados}
+              recaudado={recaudado}
+              porCobrar={porCobrar}
+              onGuardarPuestos={guardarPuestos}
+              onGuardarPrecio={guardarPrecio}
+            />
+            <RegistroForm
+              onSubmit={agregarPasajero}
+              precioPorPersona={trip.precio_por_persona}
+              disabled={lleno}
+            />
+          </div>
+
+          <div className="space-y-4 lg:space-y-6">
+            <ZonasPanel zonas={zonas} />
+            <PasajerosList passengers={passengers} onEliminar={quitarPasajero} />
+          </div>
+        </div>
       </main>
 
       <ExportFab onClick={exportar} disabled={registrados === 0} />
