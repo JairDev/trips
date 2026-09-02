@@ -136,39 +136,37 @@ export default function RegistroForm({
           />
         </label>
 
-        <div className="grid grid-cols-2 gap-3">
-          <label className="block">
-            <span className={LABEL}>Grupo responsable</span>
-            <select
-              className={CAMPO}
-              value={grupo}
-              onChange={(e) => setGrupo(e.target.value as GrupoOrigen)}
-            >
-              {GRUPOS.map((g) => (
-                <option key={g} value={g}>
-                  {g}
-                </option>
-              ))}
-            </select>
-          </label>
+        <label className="block">
+          <span className={LABEL}>Grupo responsable</span>
+          <select
+            className={CAMPO}
+            value={grupo}
+            onChange={(e) => setGrupo(e.target.value as GrupoOrigen)}
+          >
+            {GRUPOS.map((g) => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
+          </select>
+        </label>
 
-          <label className="block">
-            <span className={LABEL}>Zona de recogida</span>
-            <input
-              className={CAMPO}
-              value={zona}
-              onChange={(e) => setZona(e.target.value)}
-              list={zonasListId}
-              placeholder="Ej. Santa Rosa"
-              autoComplete="off"
-            />
-            <datalist id={zonasListId}>
-              {ZONAS_SUGERIDAS.map((z) => (
-                <option key={z} value={z} />
-              ))}
-            </datalist>
-          </label>
-        </div>
+        <label className="block">
+          <span className={LABEL}>Zona de recogida</span>
+          <input
+            className={CAMPO}
+            value={zona}
+            onChange={(e) => setZona(e.target.value)}
+            list={zonasListId}
+            placeholder="Ej. Santa Rosa"
+            autoComplete="off"
+          />
+          <datalist id={zonasListId}>
+            {ZONAS_SUGERIDAS.map((z) => (
+              <option key={z} value={z} />
+            ))}
+          </datalist>
+        </label>
 
         <div>
           <span className={LABEL}>Modalidad de pago</span>

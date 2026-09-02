@@ -47,7 +47,7 @@ export default function SeatCounterHeader({
       className="sticky top-0 z-30 border-b border-hairline bg-canvas"
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
-      <div className="mx-auto max-w-6xl px-4 pt-3 pb-3 lg:px-8">
+      <div className="mx-auto max-w-[84rem] px-4 pt-3 pb-3 lg:px-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
           <div className="min-w-0">
             <h1 className="truncate text-base font-bold text-ink">

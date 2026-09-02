@@ -41,7 +41,11 @@ create table if not exists public.passengers (
                     on delete cascade,
   nombre_completo text not null,
   grupo_origen    text not null
-                    check (grupo_origen in ('Grupo 1', 'Grupo 2', 'Grupo 3')),
+                    check (grupo_origen in (
+                      'Brújula mochilera',
+                      'Senderos del alma',
+                      'Destino 100% activo'
+                    )),
   zona_recogida   text not null,
   metodo_pago     text not null
                     check (metodo_pago in ('Pago Móvil', 'Efectivo')),

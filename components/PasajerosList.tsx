@@ -25,29 +25,9 @@ const ESTADO_TONO: Record<EstadoPago, string> = {
   Completo: "text-ink",
 };
 
-function Chip({
-  activo,
-  onClick,
-  children,
-}: {
-  activo: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`min-h-9 shrink-0 rounded-sm border px-3 text-sm font-medium ${
-        activo
-          ? "border-ink bg-ink text-canvas"
-          : "border-hairline-strong bg-canvas text-mute"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
+const FILTRO =
+  "min-h-9 w-full rounded-sm border border-hairline bg-surface-soft px-2 " +
+  "text-sm text-ink outline-none focus:border-ink focus:bg-canvas";
 
 export default function PasajerosList({ passengers, onEliminar }: Props) {
   const [filtroEstado, setFiltroEstado] = useState<FiltroEstado>("Todos");
@@ -88,43 +68,41 @@ export default function PasajerosList({ passengers, onEliminar }: Props) {
         </span>
       </div>
 
-      <div className="mt-3 -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
-        <Chip
-          activo={filtroEstado === "Todos"}
-          onClick={() => setFiltroEstado("Todos")}
-        >
-          Todos
-        </Chip>
-        {ESTADOS_PAGO.map((e) => (
-          <Chip
-            key={e}
-            activo={filtroEstado === e}
-            onClick={() => setFiltroEstado(e)}
+      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <label className="block">
+          <span className="mb-1 block text-sm text-mute">Estado de pago</span>
+          <select
+            className={FILTRO}
+            value={filtroEstado}
+            onChange={(e) => setFiltroEstado(e.target.value as FiltroEstado)}
           >
-            {e}
-          </Chip>
-        ))}
+            <option value="Todos">Todos</option>
+            {ESTADOS_PAGO.map((e) => (
+              <option key={e} value={e}>
+                {e}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="block">
+          <span className="mb-1 block text-sm text-mute">Grupo</span>
+          <select
+            className={FILTRO}
+            value={filtroGrupo}
+            onChange={(e) => setFiltroGrupo(e.target.value as FiltroGrupo)}
+          >
+            <option value="Todos">Todos</option>
+            {GRUPOS.map((g) => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
-      <div className="mt-2 -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
-        <Chip
-          activo={filtroGrupo === "Todos"}
-          onClick={() => setFiltroGrupo("Todos")}
-        >
-          Todos los grupos
-        </Chip>
-        {GRUPOS.map((g) => (
-          <Chip
-            key={g}
-            activo={filtroGrupo === g}
-            onClick={() => setFiltroGrupo(g)}
-          >
-            {g}
-          </Chip>
-        ))}
-      </div>
-
-      <ul className="mt-2 divide-y divide-hairline border-t border-hairline">
+      <ul className="mt-3 divide-y divide-hairline border-t border-hairline">
         {visibles.length === 0 && (
           <li className="py-6 text-center text-sm text-stone">
             Sin pasajeros para este filtro.

@@ -1,7 +1,11 @@
 // Tipos compartidos del dominio. Los nombres de campo coinciden 1:1 con las
 // columnas de Supabase (ver supabase/schema.sql) para evitar mapeos.
 
-export const GRUPOS = ['Grupo 1', 'Grupo 2', 'Grupo 3'] as const;
+export const GRUPOS = [
+  'Brújula mochilera',
+  'Senderos del alma',
+  'Destino 100% activo',
+] as const;
 export type GrupoOrigen = (typeof GRUPOS)[number];
 
 export const METODOS_PAGO = ['Pago Móvil', 'Efectivo'] as const;
