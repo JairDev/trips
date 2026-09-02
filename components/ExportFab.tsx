@@ -6,8 +6,8 @@ interface Props {
 }
 
 /**
- * Botón flotante (FAB) para exportar a Excel.
- * La lógica de generación .xlsx llega en la Fase 3 (SheetJS en cliente).
+ * Acción de exportar en móvil. Estilo terminal: rectángulo de 4px, relleno
+ * tinta, sin sombra. En escritorio la exporta el botón del header.
  */
 export default function ExportFab({ onClick, disabled = false }: Props) {
   return (
@@ -15,24 +15,10 @@ export default function ExportFab({ onClick, disabled = false }: Props) {
       type="button"
       onClick={onClick}
       disabled={disabled}
-      aria-label="Exportar lista a Excel"
-      className="fixed bottom-5 right-5 z-40 flex size-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 active:bg-emerald-700 disabled:opacity-40 lg:hidden"
+      className="fixed bottom-4 right-4 z-40 rounded-sm bg-ink px-4 py-3 text-sm font-medium text-canvas active:bg-ink-deep disabled:bg-surface-card disabled:text-ash lg:hidden"
       style={{ marginBottom: "env(safe-area-inset-bottom)" }}
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="size-6"
-      >
-        <path d="M12 3v12" />
-        <path d="m7 10 5 5 5-5" />
-        <path d="M5 21h14" />
-      </svg>
+      [↓] exportar
     </button>
   );
 }

@@ -2,11 +2,7 @@
 
 import { useId, useState } from "react";
 import { formatMonto } from "@/lib/format";
-import {
-  calcularPendiente,
-  derivarEstadoPago,
-  redondear2,
-} from "@/lib/pagos";
+import { calcularPendiente, derivarEstadoPago, redondear2 } from "@/lib/pagos";
 import {
   GRUPOS,
   METODOS_PAGO,
@@ -15,6 +11,7 @@ import {
   type MetodoPago,
   type NuevoPasajero,
 } from "@/lib/types";
+import { BTN_PRIMARY, CAMPO, CARD, SECTION_TITLE } from "@/lib/ui";
 
 interface Props {
   onSubmit: (nuevo: NuevoPasajero) => void | Promise<void>;
@@ -22,32 +19,29 @@ interface Props {
   disabled?: boolean;
 }
 
-const CAMPO =
-  "w-full min-h-12 rounded-xl border border-zinc-300 bg-white px-3 text-base " +
-  "outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 " +
-  "disabled:opacity-50";
+const LABEL = "mb-1 block text-sm font-medium text-body";
 
+/** Tira de pestañas: sin relleno, activa = tinta con subrayado de 2px. */
 function Segmento<T extends string>({
   opciones,
   valor,
   onChange,
-  disabled,
 }: {
   opciones: readonly T[];
   valor: T;
   onChange: (v: T) => void;
-  disabled?: boolean;
 }) {
   return (
-    <div className="grid grid-flow-col auto-cols-fr gap-1 rounded-xl bg-zinc-100 p-1">
+    <div className="flex border-b border-hairline">
       {opciones.map((op) => (
         <button
           key={op}
           type="button"
-          disabled={disabled}
           onClick={() => onChange(op)}
-          className={`min-h-11 rounded-lg px-2 text-sm font-medium transition-colors ${
-            valor === op ? "bg-white text-teal-800 shadow-sm" : "text-zinc-600"
+          className={`min-h-11 flex-1 px-2 text-sm font-medium ${
+            valor === op
+              ? "-mb-px border-b-2 border-ash text-ink"
+              : "text-mute"
           }`}
         >
           {op}
@@ -57,10 +51,11 @@ function Segmento<T extends string>({
   );
 }
 
-const ESTADO_ESTILO: Record<string, string> = {
-  Pendiente: "bg-rose-100 text-rose-700",
-  Abonado: "bg-amber-100 text-amber-700",
-  Completo: "bg-emerald-100 text-emerald-700",
+/** Estado como token entre corchetes; el color solo marca lo que requiere acción. */
+const ESTADO_TONO: Record<string, string> = {
+  Pendiente: "text-danger-hover",
+  Abonado: "text-warning-active",
+  Completo: "text-ink",
 };
 
 export default function RegistroForm({
@@ -126,19 +121,12 @@ export default function RegistroForm({
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5"
-    >
-      <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wide">
-        Registro exprés
-      </h2>
+    <form onSubmit={handleSubmit} className={CARD}>
+      <h2 className={SECTION_TITLE}>Registro exprés</h2>
 
-      <fieldset disabled={disabled} className="mt-4 space-y-4">
+      <fieldset disabled={disabled} className="mt-3 space-y-3.5">
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-zinc-700">
-            Nombre completo
-          </span>
+          <span className={LABEL}>Nombre completo</span>
           <input
             className={CAMPO}
             value={nombre}
@@ -150,9 +138,7 @@ export default function RegistroForm({
 
         <div className="grid grid-cols-2 gap-3">
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-zinc-700">
-              Grupo responsable
-            </span>
+            <span className={LABEL}>Grupo responsable</span>
             <select
               className={CAMPO}
               value={grupo}
@@ -167,9 +153,7 @@ export default function RegistroForm({
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-zinc-700">
-              Zona de recogida
-            </span>
+            <span className={LABEL}>Zona de recogida</span>
             <input
               className={CAMPO}
               value={zona}
@@ -187,16 +171,12 @@ export default function RegistroForm({
         </div>
 
         <div>
-          <span className="mb-1 block text-sm font-medium text-zinc-700">
-            Modalidad de pago
-          </span>
+          <span className={LABEL}>Modalidad de pago</span>
           <Segmento opciones={METODOS_PAGO} valor={metodo} onChange={setMetodo} />
         </div>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-medium text-zinc-700">
-            Monto abonado
-          </span>
+          <span className={LABEL}>Monto abonado</span>
           <input
             type="number"
             inputMode="decimal"
@@ -210,35 +190,33 @@ export default function RegistroForm({
         </label>
 
         {/* Resumen calculado automáticamente */}
-        <div className="rounded-xl border border-zinc-200 bg-zinc-50/70 p-3.5">
+        <div className="rounded-sm border border-hairline bg-surface-soft p-3.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-              Resumen de pago
-            </span>
+            <span className="text-sm font-bold text-mute">Resumen de pago</span>
             <span
-              className={`rounded-full px-2 py-0.5 text-xs font-semibold ${ESTADO_ESTILO[estadoPago]}`}
+              className={`text-sm font-medium ${ESTADO_TONO[estadoPago]}`}
             >
-              {estadoPago}
+              [ {estadoPago.toLowerCase()} ]
             </span>
           </div>
 
           <div className="mt-2.5 flex items-end justify-between gap-3">
             <div>
-              <p className="text-xs text-zinc-500">Pendiente por cancelar</p>
-              <p className="text-2xl font-bold tabular-nums text-rose-600">
+              <p className="text-sm text-mute">Pendiente por cancelar</p>
+              <p className="text-2xl font-bold tabular-nums text-danger-hover">
                 {formatMonto(montoPendiente)}
               </p>
             </div>
-            <dl className="text-right text-xs text-zinc-500">
+            <dl className="text-right text-sm text-mute">
               <div className="flex justify-between gap-3">
                 <dt>Paquete</dt>
-                <dd className="tabular-nums text-zinc-700">
+                <dd className="tabular-nums text-body">
                   {precioPorPersona > 0 ? formatMonto(precioPorPersona) : "—"}
                 </dd>
               </div>
               <div className="mt-0.5 flex justify-between gap-3">
                 <dt>Abonado</dt>
-                <dd className="tabular-nums text-emerald-700">
+                <dd className="tabular-nums text-body">
                   {formatMonto(montoAbonado)}
                 </dd>
               </div>
@@ -246,33 +224,32 @@ export default function RegistroForm({
           </div>
 
           {precioPorPersona === 0 && (
-            <p className="mt-2.5 text-xs text-amber-700">
-              Define el precio del paquete en “Ajustes del viaje” para calcular el
-              pendiente.
+            <p className="mt-2.5 text-sm text-warning-active">
+              [!] Define el precio del paquete en “Ajustes del viaje”.
             </p>
           )}
           {pagoDeMas && (
-            <p className="mt-2.5 text-xs text-amber-700">
-              El monto abonado supera el precio del paquete.
+            <p className="mt-2.5 text-sm text-warning-active">
+              [!] El monto abonado supera el precio del paquete.
             </p>
           )}
         </div>
 
         {error && (
-          <p className="text-sm font-medium text-red-600" role="alert">
-            {error}
+          <p className="text-sm font-medium text-danger-hover" role="alert">
+            [x] {error}
           </p>
         )}
 
         <button
           type="submit"
           disabled={enviando}
-          className="min-h-13 w-full rounded-xl bg-teal-700 px-4 text-base font-semibold text-white shadow-sm active:bg-teal-800 disabled:opacity-50"
+          className={`${BTN_PRIMARY} w-full`}
         >
           {disabled
             ? "Autobús completo"
             : enviando
-              ? "Registrando…"
+              ? "Registrando..."
               : "Registrar pasajero"}
         </button>
       </fieldset>

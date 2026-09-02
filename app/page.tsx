@@ -202,22 +202,21 @@ export default function DashboardPage() {
   // --- Estados de carga / error -----------------------------------------
   if (estado === "cargando") {
     return (
-      <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center justify-center gap-3 px-6 text-center">
-        <div className="size-8 animate-spin rounded-full border-4 border-zinc-300 border-t-teal-700" />
-        <p className="text-sm text-zinc-500">Cargando viaje…</p>
+      <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center justify-center px-6 text-center">
+        <p className="text-sm text-mute">[ ... ] Cargando viaje</p>
       </main>
     );
   }
 
   if (estado === "error" || !trip) {
     return (
-      <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center justify-center gap-3 px-6 text-center">
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-          <p className="font-semibold text-amber-900">
-            No se pudo cargar el dashboard
+      <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center justify-center px-6">
+        <div className="w-full border border-hairline bg-canvas p-5">
+          <p className="text-base font-bold text-danger-hover">
+            [x] No se pudo cargar el dashboard
           </p>
-          <p className="mt-2 text-sm text-amber-800">{errorMsg}</p>
-          <ol className="mt-3 list-decimal space-y-1 pl-5 text-left text-xs text-amber-800">
+          <p className="mt-2 text-sm text-body">{errorMsg}</p>
+          <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-body">
             <li>
               Define <code>NEXT_PUBLIC_SUPABASE_URL</code> y{" "}
               <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> en{" "}

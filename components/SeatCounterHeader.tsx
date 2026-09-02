@@ -10,10 +10,10 @@ interface Props {
 }
 
 /**
- * Header fijo (sticky) con el balance de cupos en tiempo real.
+ * Cabecera fija con el balance de cupos. Estilo terminal: lienzo crema, tinta,
+ * regla hairline inferior. El color semántico (danger / warning) solo aparece
+ * cuando el cupo se agota o está por agotarse.
  * Fórmula: disponibles = totales - registrados.
- * Cambia de color al agotarse los cupos.
- * En escritorio se despliega en horizontal e incluye el botón de exportar.
  */
 export default function SeatCounterHeader({
   destino,
@@ -31,42 +31,47 @@ export default function SeatCounterHeader({
     Math.round((registrados / puestosTotales) * 100),
   );
 
-  const tono = lleno
-    ? "bg-red-600 text-white"
+  const tonoNumero = lleno
+    ? "text-danger"
     : casiLleno
-      ? "bg-amber-500 text-white"
-      : "bg-teal-700 text-white";
+      ? "text-warning-active"
+      : "text-ink";
+  const tonoBarra = lleno
+    ? "bg-danger"
+    : casiLleno
+      ? "bg-warning-active"
+      : "bg-ink";
 
   return (
     <header
-      className={`sticky top-0 z-30 ${tono} shadow-md transition-colors`}
+      className="sticky top-0 z-30 border-b border-hairline bg-canvas"
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
-      <div className="mx-auto max-w-6xl px-4 pt-3 pb-4 lg:px-8">
+      <div className="mx-auto max-w-6xl px-4 pt-3 pb-3 lg:px-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
           <div className="min-w-0">
-            <h1 className="text-lg font-semibold leading-tight sm:text-xl">
+            <h1 className="truncate text-base font-bold text-ink">
               {destino}
             </h1>
-            <p className="text-xs opacity-90 sm:text-sm">
-              {formatFecha(fechaSalida)}
-            </p>
+            <p className="text-sm text-mute">{formatFecha(fechaSalida)}</p>
           </div>
 
           <div className="flex items-end justify-between gap-4 sm:justify-start sm:gap-6">
             <div className="leading-none">
-              <span className="text-4xl font-bold tabular-nums sm:text-5xl">
+              <span
+                className={`text-4xl font-bold tabular-nums sm:text-5xl ${tonoNumero}`}
+              >
                 {Math.max(0, disponibles)}
               </span>
-              <span className="ml-2 text-sm font-medium opacity-90">
+              <span className="ml-2 text-sm font-medium text-mute">
                 {lleno ? "sin cupos" : "disponibles"}
               </span>
             </div>
-            <div className="pb-1 text-right text-sm tabular-nums opacity-90">
-              <div>
+            <div className="pb-1 text-right text-sm tabular-nums text-mute">
+              <div className="text-ink">
                 {registrados} / {puestosTotales}
               </div>
-              <div className="text-xs">ocupados</div>
+              <div>ocupados</div>
             </div>
           </div>
 
@@ -75,37 +80,23 @@ export default function SeatCounterHeader({
               type="button"
               onClick={onExport}
               disabled={exportDisabled}
-              className="hidden shrink-0 items-center gap-2 rounded-xl bg-white/15 px-4 py-2.5 text-sm font-semibold ring-1 ring-white/30 transition-colors hover:bg-white/25 disabled:opacity-40 lg:inline-flex"
+              className="hidden shrink-0 rounded-sm border border-hairline-strong px-4 py-2 text-sm font-medium text-ink active:bg-surface-soft disabled:text-ash lg:inline-block"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="size-4"
-              >
-                <path d="M12 3v12" />
-                <path d="m7 10 5 5 5-5" />
-                <path d="M5 21h14" />
-              </svg>
-              Exportar a Excel
+              [↓] exportar a excel
             </button>
           )}
         </div>
 
-        <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-black/20 sm:mt-2">
+        <div className="mt-3 h-2 w-full border border-hairline bg-surface-soft sm:mt-2">
           <div
-            className="h-full rounded-full bg-white/90 transition-[width]"
+            className={`h-full ${tonoBarra} transition-[width]`}
             style={{ width: `${ocupacion}%` }}
           />
         </div>
 
         {lleno && (
-          <p className="mt-2 text-xs font-medium">
-            Autobús completo. No se pueden registrar más pasajeros.
+          <p className="mt-2 text-sm font-medium text-danger">
+            [x] Autobús completo. No se pueden registrar más pasajeros.
           </p>
         )}
       </div>

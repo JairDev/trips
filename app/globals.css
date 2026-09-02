@@ -1,37 +1,69 @@
 @import "tailwindcss";
 
 /*
-  MVP mobile-first. Se fuerza tema claro para máxima legibilidad al sol en
-  campo y consistencia entre dispositivos de los coordinadores.
+  Sistema de diseño "terminal-native" (ver DESIGN.md).
+  - Todo en monoespaciada (Geist Mono, sustituto de Berkeley Mono).
+  - Lienzo crema cálido, tinta casi negra.
+  - Radios: 0px en contenedores, 4px en elementos interactivos.
+  - Sin sombras, sin degradados. Separación por hairline de 1px.
 */
+@theme {
+  --color-canvas: #fdfcfc;
+  --color-surface-soft: #f8f7f7;
+  --color-surface-card: #f1eeee;
+  --color-surface-dark: #201d1d;
+  --color-surface-dark-elevated: #302c2c;
+
+  --color-ink: #201d1d;
+  --color-ink-deep: #0f0000;
+  --color-charcoal: #302c2c;
+  --color-body: #424245;
+  --color-mute: #646262;
+  --color-stone: #6e6e73;
+  --color-ash: #9a9898;
+
+  --color-hairline: rgba(15, 0, 0, 0.12);
+  --color-hairline-strong: #646262;
+
+  --color-accent: #007aff;
+  --color-accent-hover: #0056b3;
+  --color-danger: #ff3b30;
+  --color-danger-hover: #d70015;
+  --color-warning: #ff9f0a;
+  --color-warning-active: #995f06;
+  --color-success: #30d158;
+
+  --radius-sm: 4px;
+
+  --font-mono:
+    var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-sans: var(--font-mono);
+}
+
 :root {
-  --background: #f4f4f5; /* zinc-100 */
-  --foreground: #18181b; /* zinc-900 */
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-html {
   color-scheme: light;
 }
 
+/* En v4 el color de borde por defecto es currentColor: lo fijamos al hairline. */
+*,
+::before,
+::after {
+  border-color: var(--color-hairline);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
-  /* Respeta el notch / barra de gestos en móviles. */
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* Los <select> e <input type=number> no hacen zoom en iOS con >=16px. */
+/* Los form controls no heredan la tipografía por defecto. */
 input,
 select,
 button,
 textarea {
+  font-family: inherit;
   font-size: 16px;
 }

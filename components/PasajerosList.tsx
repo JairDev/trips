@@ -9,6 +9,7 @@ import {
   type GrupoOrigen,
   type Passenger,
 } from "@/lib/types";
+import { CARD } from "@/lib/ui";
 
 interface Props {
   passengers: Passenger[];
@@ -18,10 +19,10 @@ interface Props {
 type FiltroEstado = EstadoPago | "Todos";
 type FiltroGrupo = GrupoOrigen | "Todos";
 
-const ESTADO_ESTILO: Record<EstadoPago, string> = {
-  Pendiente: "bg-rose-100 text-rose-700",
-  Abonado: "bg-amber-100 text-amber-700",
-  Completo: "bg-emerald-100 text-emerald-700",
+const ESTADO_TONO: Record<EstadoPago, string> = {
+  Pendiente: "text-danger-hover",
+  Abonado: "text-warning-active",
+  Completo: "text-ink",
 };
 
 function Chip({
@@ -37,10 +38,10 @@ function Chip({
     <button
       type="button"
       onClick={onClick}
-      className={`min-h-9 shrink-0 rounded-full border px-3 text-sm font-medium transition-colors ${
+      className={`min-h-9 shrink-0 rounded-sm border px-3 text-sm font-medium ${
         activo
-          ? "border-teal-700 bg-teal-700 text-white"
-          : "border-zinc-300 bg-white text-zinc-600"
+          ? "border-ink bg-ink text-canvas"
+          : "border-hairline-strong bg-canvas text-mute"
       }`}
     >
       {children}
@@ -79,12 +80,10 @@ export default function PasajerosList({ passengers, onEliminar }: Props) {
   );
 
   return (
-    <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
-          Lista maestra
-        </h2>
-        <span className="text-xs text-zinc-400 tabular-nums">
+    <section className={CARD}>
+      <div className="flex items-baseline justify-between border-b border-hairline pb-2">
+        <h2 className="text-base font-bold text-ink">Lista maestra</h2>
+        <span className="text-sm text-mute tabular-nums">
           {visibles.length} de {passengers.length}
         </span>
       </div>
@@ -125,21 +124,18 @@ export default function PasajerosList({ passengers, onEliminar }: Props) {
         ))}
       </div>
 
-      <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <ul className="mt-2 divide-y divide-hairline border-t border-hairline">
         {visibles.length === 0 && (
-          <li className="py-6 text-center text-sm text-zinc-400 sm:col-span-2">
+          <li className="py-6 text-center text-sm text-stone">
             Sin pasajeros para este filtro.
           </li>
         )}
         {visibles.map((p) => (
-          <li
-            key={p.id_viajero}
-            className="rounded-xl border border-zinc-100 bg-zinc-50/60 p-3"
-          >
+          <li key={p.id_viajero} className="py-3">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <p className="font-medium text-zinc-900">{p.nombre_completo}</p>
-                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-zinc-500">
+                <p className="font-medium text-ink">{p.nombre_completo}</p>
+                <div className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5 text-sm text-mute">
                   <span>{p.grupo_origen}</span>
                   <span>·</span>
                   <span>{p.zona_recogida}</span>
@@ -147,44 +143,28 @@ export default function PasajerosList({ passengers, onEliminar }: Props) {
                   <span>{p.metodo_pago}</span>
                 </div>
               </div>
-              <div className="flex shrink-0 items-center gap-1">
+              <div className="flex shrink-0 items-center gap-3">
                 <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-semibold ${ESTADO_ESTILO[p.estado_pago]}`}
+                  className={`text-sm font-medium ${ESTADO_TONO[p.estado_pago]}`}
                 >
-                  {p.estado_pago}
+                  [ {p.estado_pago.toLowerCase()} ]
                 </span>
                 <button
                   type="button"
                   onClick={() => pedirEliminar(p)}
                   disabled={eliminando === p.id_viajero}
                   aria-label={`Eliminar a ${p.nombre_completo}`}
-                  className="flex size-9 items-center justify-center rounded-lg text-zinc-400 active:bg-zinc-200 disabled:opacity-40"
+                  className="min-h-8 px-1 text-sm text-mute active:text-danger-hover disabled:text-ash"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="size-5"
-                  >
-                    <path d="M3 6h18" />
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                    <path d="M10 11v6" />
-                    <path d="M14 11v6" />
-                  </svg>
+                  [x]
                 </button>
               </div>
             </div>
             {(p.monto_abonado > 0 || p.monto_pendiente > 0) && (
-              <div className="mt-1.5 flex gap-4 text-xs tabular-nums">
-                <span className="text-emerald-700">
-                  Abonado {formatMonto(p.monto_abonado)}
-                </span>
+              <div className="mt-1 flex gap-4 text-sm tabular-nums text-body">
+                <span>Abonado {formatMonto(p.monto_abonado)}</span>
                 {p.monto_pendiente > 0 && (
-                  <span className="text-rose-600">
+                  <span className="text-danger-hover">
                     Pendiente {formatMonto(p.monto_pendiente)}
                   </span>
                 )}
