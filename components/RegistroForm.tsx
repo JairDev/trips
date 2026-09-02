@@ -64,6 +64,7 @@ export default function RegistroForm({ onSubmit, disabled = false }: Props) {
   const [abonado, setAbonado] = useState("");
   const [pendiente, setPendiente] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
 
   const montoAbonadoBloqueado = estado === "Pendiente";
   const montoPendienteBloqueado = estado === "Completo";
@@ -84,7 +85,7 @@ export default function RegistroForm({ onSubmit, disabled = false }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (disabled) return;
+    if (disabled || enviando) return;
 
     if (!nombre.trim()) {
       setError("El nombre completo es obligatorio.");
@@ -105,9 +106,17 @@ export default function RegistroForm({ onSubmit, disabled = false }: Props) {
       monto_pendiente: montoPendienteBloqueado ? 0 : Number(pendiente) || 0,
     };
 
-    await onSubmit(nuevo);
-    limpiar();
-    // Mantiene grupo, zona y método para registrar en serie más rápido.
+    setEnviando(true);
+    setError(null);
+    try {
+      await onSubmit(nuevo);
+      limpiar();
+      // Mantiene grupo, zona y método para registrar en serie más rápido.
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo registrar.");
+    } finally {
+      setEnviando(false);
+    }
   }
 
   return (
@@ -236,9 +245,14 @@ export default function RegistroForm({ onSubmit, disabled = false }: Props) {
 
         <button
           type="submit"
+          disabled={enviando}
           className="min-h-13 w-full rounded-xl bg-teal-700 px-4 text-base font-semibold text-white shadow-sm active:bg-teal-800 disabled:opacity-50"
         >
-          {disabled ? "Autobús completo" : "Registrar pasajero"}
+          {disabled
+            ? "Autobús completo"
+            : enviando
+              ? "Registrando…"
+              : "Registrar pasajero"}
         </button>
       </fieldset>
     </form>
