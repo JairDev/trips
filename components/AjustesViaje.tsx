@@ -11,7 +11,6 @@ interface FilaProps {
   step: string;
   min: number;
   entero?: boolean;
-  ayuda?: string;
   validar?: (n: number) => string | null;
   onGuardar: (n: number) => Promise<void>;
 }
@@ -28,7 +27,6 @@ function FilaEditable({
   step,
   min,
   entero = false,
-  ayuda,
   validar,
   onGuardar,
 }: FilaProps) {
@@ -89,10 +87,7 @@ function FilaEditable({
   return (
     <div className="py-3.5 first:pt-0 last:pb-0">
       <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-body">{etiqueta}</p>
-          {ayuda && <p className="mt-0.5 text-sm text-stone">{ayuda}</p>}
-        </div>
+        <p className="min-w-0 text-sm font-medium text-body">{etiqueta}</p>
 
         {editando ? (
           <input
@@ -124,14 +119,14 @@ function FilaEditable({
                 inputRef.current?.blur();
               }
             }}
-            className="w-28 shrink-0 rounded-sm border border-ink bg-canvas px-2 py-0.5 text-right text-xl font-bold tabular-nums text-ink outline-none disabled:opacity-50"
+            className="w-20 shrink-0 rounded-sm border border-ink bg-canvas px-2 py-0.5 text-right text-xl font-bold tabular-nums text-ink outline-none disabled:opacity-50"
           />
         ) : (
           <button
             type="button"
             onClick={abrir}
             aria-label={`Editar ${etiqueta.toLowerCase()}`}
-            className="w-28 shrink-0 rounded-sm px-2 py-0.5 text-right text-xl font-bold tabular-nums text-ink underline decoration-hairline decoration-dashed underline-offset-4 active:bg-surface-soft"
+            className="shrink-0 rounded-sm px-2 py-0.5 text-right text-xl font-bold tabular-nums text-ink underline decoration-hairline decoration-dashed underline-offset-4 active:bg-surface-soft"
           >
             {mostrar(valor)}
           </button>
@@ -175,7 +170,6 @@ export default function AjustesViaje({
       <div className="mt-3 divide-y divide-hairline">
         <FilaEditable
           etiqueta="Puestos del bus"
-          ayuda="Capacidad de la unidad"
           valor={puestosTotales}
           mostrar={(v) => String(v)}
           step="1"
@@ -190,9 +184,8 @@ export default function AjustesViaje({
         />
         <FilaEditable
           etiqueta="Paquete por persona"
-          ayuda="De aquí sale el monto pendiente"
           valor={precioPorPersona}
-          mostrar={(v) => (v > 0 ? formatMonto(v) : "definir")}
+          mostrar={(v) => (v > 0 ? formatMonto(v) : "0,00")}
           step="0.01"
           min={0}
           onGuardar={onGuardarPrecio}
