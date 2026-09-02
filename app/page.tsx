@@ -1,14 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import AjustesViaje from "@/components/AjustesViaje";
 import ExportFab from "@/components/ExportFab";
-import PaqueteBar from "@/components/PaqueteBar";
 import PasajerosList from "@/components/PasajerosList";
 import RegistroForm from "@/components/RegistroForm";
 import SeatCounterHeader from "@/components/SeatCounterHeader";
 import ZonasPanel from "@/components/ZonasPanel";
 import {
   actualizarPrecioViaje,
+  actualizarPuestosViaje,
+  eliminarPasajero,
   fetchPasajeros,
   fetchViajeActivo,
   insertPasajero,
@@ -175,6 +177,20 @@ export default function DashboardPage() {
     [trip],
   );
 
+  const guardarPuestos = useCallback(
+    async (nuevo: number) => {
+      if (!trip) throw new Error("No hay viaje activo.");
+      setTrip(await actualizarPuestosViaje(trip.id_viaje, nuevo));
+    },
+    [trip],
+  );
+
+  const quitarPasajero = useCallback(async (idViajero: string) => {
+    await eliminarPasajero(idViajero);
+    // Quita ya de la lista; el evento Realtime DELETE luego es idempotente.
+    setPassengers((prev) => prev.filter((p) => p.id_viajero !== idViajero));
+  }, []);
+
   async function exportar() {
     if (!trip || passengers.length === 0) return;
     // Carga diferida de SheetJS: no entra en el bundle inicial (ahorra datos
@@ -230,10 +246,13 @@ export default function DashboardPage() {
       />
 
       <main className="mx-auto w-full max-w-md flex-1 space-y-4 px-4 pt-4 pb-28">
-        <PaqueteBar
+        <AjustesViaje
+          puestosTotales={trip.puestos_totales}
           precioPorPersona={trip.precio_por_persona}
+          registrados={registrados}
           recaudado={recaudado}
           porCobrar={porCobrar}
+          onGuardarPuestos={guardarPuestos}
           onGuardarPrecio={guardarPrecio}
         />
         <RegistroForm
@@ -242,7 +261,7 @@ export default function DashboardPage() {
           disabled={lleno}
         />
         <ZonasPanel zonas={zonas} />
-        <PasajerosList passengers={passengers} />
+        <PasajerosList passengers={passengers} onEliminar={quitarPasajero} />
       </main>
 
       <ExportFab onClick={exportar} disabled={registrados === 0} />

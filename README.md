@@ -37,7 +37,7 @@ npm run dev        # http://localhost:3000
 | `lib/zonas.ts` | `agruparPorZona()` — conteo por zona de recogida (función pura). |
 | `lib/export-excel.ts` | Reporte `.xlsx` en cliente con SheetJS (carga diferida). |
 | `app/page.tsx` | Dashboard: carga inicial, suscripción Realtime, alta con validación de cupos. |
-| `components/*` | Header sticky de cupos, formulario exprés, panel de zonas, lista maestra, FAB. |
+| `components/*` | Header sticky de cupos, ajustes del viaje (puestos + precio + caja), formulario exprés, panel de zonas, lista maestra con eliminar, FAB. |
 
 ## Fases (según `docs/desarrollo-mvp-claude-v2.md`)
 

@@ -47,6 +47,31 @@ export async function actualizarPrecioViaje(
   return data as Trip;
 }
 
+/** Actualiza la capacidad (puestos) del autobús del viaje. */
+export async function actualizarPuestosViaje(
+  idViaje: string,
+  puestosTotales: number,
+): Promise<Trip> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("trips")
+    .update({ puestos_totales: puestosTotales })
+    .eq("id_viaje", idViaje)
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data as Trip;
+}
+
+export async function eliminarPasajero(idViajero: string): Promise<void> {
+  const supabase = getSupabaseClient();
+  const { error } = await supabase
+    .from("passengers")
+    .delete()
+    .eq("id_viajero", idViajero);
+  if (error) throw new Error(error.message);
+}
+
 export async function fetchPasajeros(idViaje: string): Promise<Passenger[]> {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
