@@ -28,7 +28,7 @@ export default function GastosOperativos({
   onEliminar,
 }: Props) {
   const [concepto, setConcepto] = useState("");
-  const [moneda, setMoneda] = useState<Moneda>("€");
+  const [moneda, setMoneda] = useState<Moneda>("Bs");
   const [monto, setMonto] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
@@ -112,7 +112,7 @@ export default function GastosOperativos({
         <div>
           <span className="mb-1 block text-sm font-medium text-body">Moneda</span>
           <Segmento
-            opciones={["€", "Bs"] as const}
+            opciones={["Bs", "€"] as const}
             valor={moneda}
             onChange={cambiarMoneda}
           />
