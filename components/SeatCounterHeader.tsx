@@ -63,7 +63,7 @@ export default function SeatCounterHeader({
               {Math.max(0, disponibles)}
             </span>
             <span className="ml-2 text-sm font-medium text-mute">
-              {lleno ? "sin cupos" : "disponibles"}
+              {lleno ? "sin cupos" : "puestos disponibles"}
             </span>
           </div>
 
