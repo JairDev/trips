@@ -96,7 +96,7 @@ export default function PasajerosList({ passengers, tasaEuro, onEliminar }: Prop
   return (
     <section className={CARD}>
       <div className="flex items-baseline justify-between border-b border-hairline pb-2">
-        <h2 className="text-base font-bold text-ink">Lista maestra</h2>
+        <h2 className="text-base font-bold text-ink">Lista de pasajeros</h2>
         <span className="text-sm text-mute tabular-nums">
           {visibles.length} de {passengers.length}
         </span>
