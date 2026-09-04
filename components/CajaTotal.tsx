@@ -4,19 +4,24 @@ import { CARD, SECTION_TITLE } from "@/lib/ui";
 interface Props {
   totalRecaudado: number;
   totalPorCobrar: number;
+  totalGastos: number;
   tasaEuro: number | null;
 }
 
 /**
  * Totales de caja del viaje, en bolívares (cifra principal, es lo que se
  * cobra/recibe en la calle) con el equivalente en euros debajo (la moneda
- * en la que está fijado el precio del paquete).
+ * en la que está fijado el precio del paquete). El balance neto resta los
+ * gastos operativos de lo recaudado: es el efectivo que le queda al viaje.
  */
 export default function CajaTotal({
   totalRecaudado,
   totalPorCobrar,
+  totalGastos,
   tasaEuro,
 }: Props) {
+  const balanceNeto = totalRecaudado - totalGastos;
+
   return (
     <section className={CARD}>
       <h2 className={SECTION_TITLE}>Caja del viaje</h2>
@@ -41,6 +46,18 @@ export default function CajaTotal({
             <p className="text-sm text-stone">≈ {formatEuro(totalPorCobrar)}</p>
           )}
         </div>
+      </div>
+
+      <div className="mt-4 border-t border-hairline pt-3">
+        <p className="text-sm text-mute">Balance neto (recaudado − gastos)</p>
+        <p
+          className={`text-2xl font-bold tabular-nums ${
+            balanceNeto < 0 ? "text-danger-hover" : "text-ink"
+          }`}
+        >
+          {tasaEuro ? formatBs(balanceNeto * tasaEuro) : formatEuro(balanceNeto)}
+        </p>
+        {tasaEuro && <p className="text-sm text-stone">≈ {formatEuro(balanceNeto)}</p>}
       </div>
 
       <p className="mt-4 border-t border-hairline pt-3 text-sm text-stone">

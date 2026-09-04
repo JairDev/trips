@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import Segmento from "@/components/Segmento";
 import { formatBs, formatEuro } from "@/lib/format";
 import { calcularPendiente, derivarEstadoPago, redondear2 } from "@/lib/pagos";
 import {
@@ -21,36 +22,6 @@ interface Props {
 }
 
 const LABEL = "mb-1 block text-sm font-medium text-body";
-
-/** Tira de pestañas: sin relleno, activa = tinta con subrayado de 2px. */
-function Segmento<T extends string>({
-  opciones,
-  valor,
-  onChange,
-}: {
-  opciones: readonly T[];
-  valor: T;
-  onChange: (v: T) => void;
-}) {
-  return (
-    <div className="flex border-b border-hairline">
-      {opciones.map((op) => (
-        <button
-          key={op}
-          type="button"
-          onClick={() => onChange(op)}
-          className={`min-h-11 flex-1 px-2 text-sm font-medium ${
-            valor === op
-              ? "-mb-px border-b-2 border-ash text-ink"
-              : "text-mute"
-          }`}
-        >
-          {op}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 export default function RegistroForm({
   onSubmit,

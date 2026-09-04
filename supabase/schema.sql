@@ -74,6 +74,24 @@ create index if not exists passengers_zona_recogida_idx
 create unique index if not exists passengers_viaje_nombre_uniq
   on public.passengers (id_viaje, lower(btrim(nombre_completo)));
 
+-- -----------------------------------------------------------------------------
+--  Tabla: gastos  (Gastos operativos del viaje: transporte, snacks, peajes...)
+-- -----------------------------------------------------------------------------
+create table if not exists public.gastos (
+  id_gasto   uuid primary key default gen_random_uuid(),
+  id_viaje   uuid not null
+               references public.trips (id_viaje)
+               on delete cascade,
+  concepto   text not null,
+  monto      numeric(10, 2) not null default 0 check (monto >= 0),
+  created_at timestamptz not null default now()
+);
+
+comment on table public.gastos is 'Gastos operativos del viaje. Monto siempre en euros, igual que passengers.';
+
+create index if not exists gastos_id_viaje_idx
+  on public.gastos (id_viaje);
+
 
 -- =============================================================================
 --  CÁLCULO AUTOMÁTICO DE PAGOS
@@ -151,8 +169,8 @@ create trigger trg_recalc_pagos_viaje
 --    b) emitir la fila COMPLETA en UPDATE/DELETE (REPLICA IDENTITY FULL),
 --       necesario para que el cliente pueda reconciliar su estado local.
 --
---  Se publican `passengers` (altas/pagos) y `trips` (precio del paquete, para
---  que el cambio de precio y el recálculo lleguen a todos al instante).
+--  Se publican `passengers` (altas/pagos), `trips` (precio del paquete) y
+--  `gastos` (gastos operativos) para que todo llegue a todos al instante.
 -- =============================================================================
 
 do $$
@@ -172,11 +190,20 @@ begin
   ) then
     alter publication supabase_realtime add table public.trips;
   end if;
+
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public' and tablename = 'gastos'
+  ) then
+    alter publication supabase_realtime add table public.gastos;
+  end if;
 end $$;
 
 -- Emitir la fila completa en cambios (por defecto solo emite la PK).
 alter table public.passengers replica identity full;
 alter table public.trips      replica identity full;
+alter table public.gastos     replica identity full;
 
 
 -- =============================================================================
@@ -192,6 +219,7 @@ alter table public.trips      replica identity full;
 
 alter table public.trips      enable row level security;
 alter table public.passengers enable row level security;
+alter table public.gastos     enable row level security;
 
 -- --- trips -------------------------------------------------------------------
 drop policy if exists "MVP: lectura pública de viajes"  on public.trips;
@@ -217,6 +245,20 @@ create policy "MVP: lectura pública de pasajeros"
 drop policy if exists "MVP: escritura pública de pasajeros" on public.passengers;
 create policy "MVP: escritura pública de pasajeros"
   on public.passengers for all
+  to anon, authenticated
+  using (true)
+  with check (true);
+
+-- --- gastos ------------------------------------------------------------------
+drop policy if exists "MVP: lectura pública de gastos" on public.gastos;
+create policy "MVP: lectura pública de gastos"
+  on public.gastos for select
+  to anon, authenticated
+  using (true);
+
+drop policy if exists "MVP: escritura pública de gastos" on public.gastos;
+create policy "MVP: escritura pública de gastos"
+  on public.gastos for all
   to anon, authenticated
   using (true)
   with check (true);

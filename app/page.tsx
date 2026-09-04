@@ -4,31 +4,39 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import AjustesViaje from "@/components/AjustesViaje";
 import CajaTotal from "@/components/CajaTotal";
 import ExportFab from "@/components/ExportFab";
+import GastosOperativos from "@/components/GastosOperativos";
 import PasajerosList from "@/components/PasajerosList";
 import RegistroForm from "@/components/RegistroForm";
 import SeatCounterHeader from "@/components/SeatCounterHeader";
+import Segmento from "@/components/Segmento";
 import ZonasPanel from "@/components/ZonasPanel";
 import {
   actualizarPrecioViaje,
   actualizarPuestosViaje,
+  eliminarGasto,
   eliminarPasajero,
+  fetchGastos,
   fetchPasajeros,
   fetchViajeActivo,
+  insertGasto,
   insertPasajero,
 } from "@/lib/api";
 import { fetchTasaEuro } from "@/lib/bcv";
-import type { NuevoPasajero, Passenger, Trip } from "@/lib/types";
+import type { Gasto, NuevoGasto, NuevoPasajero, Passenger, Trip } from "@/lib/types";
 import { agruparPorZona } from "@/lib/zonas";
 import { getSupabaseClient } from "@/utils/supabase/client";
 
 type Estado = "cargando" | "listo" | "error";
+type Pestana = "pasajeros" | "finanzas";
 
 export default function DashboardPage() {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [passengers, setPassengers] = useState<Passenger[]>([]);
+  const [gastos, setGastos] = useState<Gasto[]>([]);
   const [estado, setEstado] = useState<Estado>("cargando");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [tasaEuro, setTasaEuro] = useState<number | null>(null);
+  const [pestana, setPestana] = useState<Pestana>("pasajeros");
 
   // --- Tasa EUR/Bs del BCV (para mostrar la conversión de los montos) -----
   useEffect(() => {
@@ -58,11 +66,15 @@ export default function DashboardPage() {
           return;
         }
 
-        const lista = await fetchPasajeros(viaje.id_viaje);
+        const [lista, listaGastos] = await Promise.all([
+          fetchPasajeros(viaje.id_viaje),
+          fetchGastos(viaje.id_viaje),
+        ]);
         if (!vivo) return;
 
         setTrip(viaje);
         setPassengers(lista);
+        setGastos(listaGastos);
         setEstado("listo");
       } catch (err) {
         if (!vivo) return;
@@ -148,6 +160,44 @@ export default function DashboardPage() {
     };
   }, [tripId]);
 
+  // --- Suscripción Realtime a la tabla gastos ------------------------------
+  useEffect(() => {
+    if (!tripId) return;
+
+    const supabase = getSupabaseClient();
+    const canal = supabase
+      .channel(`gastos:${tripId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "gastos",
+          filter: `id_viaje=eq.${tripId}`,
+        },
+        (payload) => {
+          setGastos((prev) => {
+            if (payload.eventType === "INSERT") {
+              const fila = payload.new as Gasto;
+              return prev.some((g) => g.id_gasto === fila.id_gasto)
+                ? prev
+                : [...prev, fila];
+            }
+            if (payload.eventType === "DELETE") {
+              const fila = payload.old as Partial<Gasto>;
+              return prev.filter((g) => g.id_gasto !== fila.id_gasto);
+            }
+            return prev;
+          });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(canal);
+    };
+  }, [tripId]);
+
   const registrados = passengers.length;
   const lleno = trip ? registrados >= trip.puestos_totales : false;
   const zonas = useMemo(() => agruparPorZona(passengers), [passengers]);
@@ -158,6 +208,10 @@ export default function DashboardPage() {
   const totalPorCobrar = useMemo(
     () => passengers.reduce((s, p) => s + p.monto_pendiente, 0),
     [passengers],
+  );
+  const totalGastos = useMemo(
+    () => gastos.reduce((s, g) => s + g.monto, 0),
+    [gastos],
   );
 
   // --- Alta desde el Formulario Exprés (con validación de cupos) ----------
@@ -203,6 +257,22 @@ export default function DashboardPage() {
     await eliminarPasajero(idViajero);
     // Quita ya de la lista; el evento Realtime DELETE luego es idempotente.
     setPassengers((prev) => prev.filter((p) => p.id_viajero !== idViajero));
+  }, []);
+
+  const agregarGasto = useCallback(
+    async (nuevo: NuevoGasto) => {
+      if (!trip) throw new Error("No hay viaje activo.");
+      const creado = await insertGasto(trip.id_viaje, nuevo);
+      setGastos((prev) =>
+        prev.some((g) => g.id_gasto === creado.id_gasto) ? prev : [...prev, creado],
+      );
+    },
+    [trip],
+  );
+
+  const quitarGasto = useCallback(async (idGasto: string) => {
+    await eliminarGasto(idGasto);
+    setGastos((prev) => prev.filter((g) => g.id_gasto !== idGasto));
   }, []);
 
   async function exportar() {
@@ -279,18 +349,39 @@ export default function DashboardPage() {
             />
           </div>
 
-          <div className="space-y-4 lg:space-y-6">
-            <ZonasPanel zonas={zonas} />
-            <PasajerosList
-              passengers={passengers}
-              tasaEuro={tasaEuro}
-              onEliminar={quitarPasajero}
+          <div>
+            <Segmento
+              opciones={["pasajeros", "finanzas"] as const}
+              valor={pestana}
+              onChange={setPestana}
+              etiquetas={{ pasajeros: "Pasajeros", finanzas: "Finanzas" }}
             />
-            <CajaTotal
-              totalRecaudado={totalRecaudado}
-              totalPorCobrar={totalPorCobrar}
-              tasaEuro={tasaEuro}
-            />
+
+            {pestana === "pasajeros" ? (
+              <div className="mt-4 space-y-4 lg:space-y-6">
+                <ZonasPanel zonas={zonas} />
+                <PasajerosList
+                  passengers={passengers}
+                  tasaEuro={tasaEuro}
+                  onEliminar={quitarPasajero}
+                />
+              </div>
+            ) : (
+              <div className="mt-4 space-y-4 lg:space-y-6">
+                <CajaTotal
+                  totalRecaudado={totalRecaudado}
+                  totalPorCobrar={totalPorCobrar}
+                  totalGastos={totalGastos}
+                  tasaEuro={tasaEuro}
+                />
+                <GastosOperativos
+                  gastos={gastos}
+                  tasaEuro={tasaEuro}
+                  onAgregar={agregarGasto}
+                  onEliminar={quitarGasto}
+                />
+              </div>
+            )}
           </div>
         </div>
       </main>

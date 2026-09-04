@@ -1,5 +1,5 @@
 import { getSupabaseClient } from "@/utils/supabase/client";
-import type { NuevoPasajero, Passenger, Trip } from "./types";
+import type { Gasto, NuevoGasto, NuevoPasajero, Passenger, Trip } from "./types";
 
 /**
  * Viaje "activo": la próxima salida programada (fecha_salida >= hoy).
@@ -102,4 +102,35 @@ export async function insertPasajero(
     throw new Error(error.message);
   }
   return data as Passenger;
+}
+
+export async function fetchGastos(idViaje: string): Promise<Gasto[]> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("gastos")
+    .select("*")
+    .eq("id_viaje", idViaje)
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Gasto[];
+}
+
+export async function insertGasto(
+  idViaje: string,
+  nuevo: NuevoGasto,
+): Promise<Gasto> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("gastos")
+    .insert({ ...nuevo, id_viaje: idViaje })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data as Gasto;
+}
+
+export async function eliminarGasto(idGasto: string): Promise<void> {
+  const supabase = getSupabaseClient();
+  const { error } = await supabase.from("gastos").delete().eq("id_gasto", idGasto);
+  if (error) throw new Error(error.message);
 }

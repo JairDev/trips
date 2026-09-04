@@ -50,3 +50,13 @@ export type NuevoPasajero = Omit<
   Passenger,
   'id_viajero' | 'id_viaje' | 'created_at'
 >;
+
+export interface Gasto {
+  id_gasto: string;
+  id_viaje: string;
+  concepto: string;
+  monto: number; // siempre en euros, igual que el resto de montos de la app
+  created_at?: string;
+}
+
+export type NuevoGasto = Omit<Gasto, 'id_gasto' | 'id_viaje' | 'created_at'>;

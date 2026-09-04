@@ -7,20 +7,21 @@
 3. Pega el contenido completo de [`schema.sql`](./schema.sql) y pulsa **Run**.
 
 > **¿Ya habías aplicado una versión anterior del `schema.sql`?**
-> Ejecuta además [`migrations/0001_precio_paquete.sql`](./migrations/0001_precio_paquete.sql)
-> una vez: añade `trips.precio_por_persona` y los triggers que calculan
-> `monto_pendiente` / `estado_pago` automáticamente. Ajusta el precio dentro
-> del script.
+> Ejecuta también, una vez cada una:
+> - [`migrations/0001_precio_paquete.sql`](./migrations/0001_precio_paquete.sql) — añade `trips.precio_por_persona` y los triggers que calculan `monto_pendiente` / `estado_pago` automáticamente. Ajusta el precio dentro del script.
+> - [`migrations/0002_grupos.sql`](./migrations/0002_grupos.sql) — renombra los grupos aliados.
+> - [`migrations/0003_gastos.sql`](./migrations/0003_gastos.sql) — crea la tabla `gastos` (transporte, snacks, etc.).
 
 Esto crea:
 
 | Objeto | Descripción |
 | --- | --- |
-| `public.trips` | Salidas de senderismo (destino, fecha, `puestos_totales`). |
+| `public.trips` | Salidas de senderismo (destino, fecha, `puestos_totales`, `precio_por_persona`). |
 | `public.passengers` | Excursionistas inscritos, con constraints de dominio (`grupo_origen`, `metodo_pago`, `estado_pago`) y montos. |
+| `public.gastos` | Gastos operativos del viaje (transporte, snacks, peajes...). Monto siempre en euros. |
 | Índices | Por `id_viaje`, por zona de recogida y unicidad de nombre por viaje (evita duplicados). |
-| Publicación `supabase_realtime` | La tabla `passengers` queda emitiendo `INSERT/UPDATE/DELETE` en tiempo real. |
-| RLS | Políticas **públicas de prueba** (lectura + escritura para `anon`). Endurecer antes de producción — ver notas al final de `schema.sql`. |
+| Publicación `supabase_realtime` | `passengers`, `trips` y `gastos` emiten `INSERT/UPDATE/DELETE` en tiempo real. |
+| RLS | Políticas **públicas de prueba** (lectura + escritura para `anon`) en las tres tablas. Endurecer antes de producción — ver notas al final de `schema.sql`. |
 
 El script es **idempotente**. Crea **un viaje vacío** (`Pico Naiguatá`) para que
 la app tenga contexto al arrancar, pero **no inserta pasajeros**: la lista arranca
@@ -39,8 +40,8 @@ where id_viaje = (select id_viaje from public.trips
 
 ## 2. Verificar Realtime
 
-`Database` → `Publications` → `supabase_realtime` debe listar la tabla `passengers`
-con los eventos Insert / Update / Delete activados.
+`Database` → `Publications` → `supabase_realtime` debe listar las tablas `passengers`,
+`trips` y `gastos` con los eventos Insert / Update / Delete activados.
 
 ## 3. Credenciales para el frontend (Fase 2)
 
