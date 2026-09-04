@@ -30,6 +30,39 @@ const FILTRO =
   "min-h-9 w-full rounded-sm border border-hairline bg-surface-soft px-2 " +
   "text-sm text-ink outline-none focus:border-ink focus:bg-canvas";
 
+/**
+ * El Pago Móvil se cobra en bolívares (así funciona en Venezuela), aunque
+ * `monto_abonado` se guarda siempre en euros. Para ese método se muestran los
+ * bolívares como cifra principal (el monto real que se transfirió) y el euro
+ * como equivalente; para Efectivo es al revés.
+ */
+function AbonadoTexto({
+  monto,
+  metodoPago,
+  tasaEuro,
+}: {
+  monto: number;
+  metodoPago: Passenger["metodo_pago"];
+  tasaEuro: number | null;
+}) {
+  if (metodoPago === "Pago Móvil" && tasaEuro) {
+    return (
+      <>
+        {formatBs(monto * tasaEuro)}
+        <span className="text-stone"> (≈ {formatEuro(monto)})</span>
+      </>
+    );
+  }
+  return (
+    <>
+      {formatEuro(monto)}
+      {tasaEuro && (
+        <span className="text-stone"> (≈ {formatBs(monto * tasaEuro)})</span>
+      )}
+    </>
+  );
+}
+
 export default function PasajerosList({ passengers, tasaEuro, onEliminar }: Props) {
   const [filtroEstado, setFiltroEstado] = useState<FiltroEstado>("Todos");
   const [filtroGrupo, setFiltroGrupo] = useState<FiltroGrupo>("Todos");
@@ -142,13 +175,12 @@ export default function PasajerosList({ passengers, tasaEuro, onEliminar }: Prop
             {(p.monto_abonado > 0 || p.monto_pendiente > 0) && (
               <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-sm tabular-nums text-body">
                 <span>
-                  Abonado {formatEuro(p.monto_abonado)}
-                  {tasaEuro && (
-                    <span className="text-stone">
-                      {" "}
-                      (≈ {formatBs(p.monto_abonado * tasaEuro)})
-                    </span>
-                  )}
+                  Abonado{" "}
+                  <AbonadoTexto
+                    monto={p.monto_abonado}
+                    metodoPago={p.metodo_pago}
+                    tasaEuro={tasaEuro}
+                  />
                 </span>
                 {p.monto_pendiente > 0 && (
                   <span className="text-danger-hover">
