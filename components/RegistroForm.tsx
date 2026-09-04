@@ -1,7 +1,6 @@
 "use client";
 
 import { useId, useState } from "react";
-import { formatMonto } from "@/lib/format";
 import { calcularPendiente, derivarEstadoPago, redondear2 } from "@/lib/pagos";
 import {
   GRUPOS,
@@ -51,13 +50,6 @@ function Segmento<T extends string>({
   );
 }
 
-/** Estado como token entre corchetes; el color solo marca lo que requiere acción. */
-const ESTADO_TONO: Record<string, string> = {
-  Pendiente: "text-danger-hover",
-  Abonado: "text-warning-active",
-  Completo: "text-ink",
-};
-
 export default function RegistroForm({
   onSubmit,
   precioPorPersona,
@@ -76,7 +68,6 @@ export default function RegistroForm({
   const montoAbonado = redondear2(Math.max(0, Number(abonado) || 0));
   const montoPendiente = calcularPendiente(precioPorPersona, montoAbonado);
   const estadoPago = derivarEstadoPago(precioPorPersona, montoAbonado);
-  const pagoDeMas = montoAbonado > precioPorPersona && precioPorPersona > 0;
 
   function limpiar() {
     setNombre("");
@@ -186,52 +177,6 @@ export default function RegistroForm({
             placeholder="0.00"
           />
         </label>
-
-        {/* Resumen calculado automáticamente */}
-        <div className="rounded-sm border border-hairline bg-surface-soft p-3.5">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-mute">Resumen de pago</span>
-            <span
-              className={`text-sm font-medium ${ESTADO_TONO[estadoPago]}`}
-            >
-              [ {estadoPago.toLowerCase()} ]
-            </span>
-          </div>
-
-          <div className="mt-2.5 flex items-end justify-between gap-3">
-            <div>
-              <p className="text-sm text-mute">Pendiente por cancelar</p>
-              <p className="text-2xl font-bold tabular-nums text-danger-hover">
-                {formatMonto(montoPendiente)}
-              </p>
-            </div>
-            <dl className="text-right text-sm text-mute">
-              <div className="flex justify-between gap-3">
-                <dt>Paquete</dt>
-                <dd className="tabular-nums text-body">
-                  {precioPorPersona > 0 ? formatMonto(precioPorPersona) : "—"}
-                </dd>
-              </div>
-              <div className="mt-0.5 flex justify-between gap-3">
-                <dt>Abonado</dt>
-                <dd className="tabular-nums text-body">
-                  {formatMonto(montoAbonado)}
-                </dd>
-              </div>
-            </dl>
-          </div>
-
-          {precioPorPersona === 0 && (
-            <p className="mt-2.5 text-sm text-warning-active">
-              [!] Define el precio del paquete en “Ajustes del viaje”.
-            </p>
-          )}
-          {pagoDeMas && (
-            <p className="mt-2.5 text-sm text-warning-active">
-              [!] El monto abonado supera el precio del paquete.
-            </p>
-          )}
-        </div>
 
         {error && (
           <p className="text-sm font-medium text-danger-hover" role="alert">
