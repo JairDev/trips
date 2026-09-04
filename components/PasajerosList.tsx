@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { formatMonto } from "@/lib/format";
+import { formatBs, formatEuro } from "@/lib/format";
 import {
   ESTADOS_PAGO,
   GRUPOS,
@@ -13,6 +13,7 @@ import { CARD } from "@/lib/ui";
 
 interface Props {
   passengers: Passenger[];
+  tasaEuro: number | null;
   onEliminar: (idViajero: string) => void | Promise<void>;
 }
 
@@ -29,7 +30,7 @@ const FILTRO =
   "min-h-9 w-full rounded-sm border border-hairline bg-surface-soft px-2 " +
   "text-sm text-ink outline-none focus:border-ink focus:bg-canvas";
 
-export default function PasajerosList({ passengers, onEliminar }: Props) {
+export default function PasajerosList({ passengers, tasaEuro, onEliminar }: Props) {
   const [filtroEstado, setFiltroEstado] = useState<FiltroEstado>("Todos");
   const [filtroGrupo, setFiltroGrupo] = useState<FiltroGrupo>("Todos");
   const [eliminando, setEliminando] = useState<string | null>(null);
@@ -139,11 +140,25 @@ export default function PasajerosList({ passengers, onEliminar }: Props) {
               </div>
             </div>
             {(p.monto_abonado > 0 || p.monto_pendiente > 0) && (
-              <div className="mt-1 flex gap-4 text-sm tabular-nums text-body">
-                <span>Abonado {formatMonto(p.monto_abonado)}</span>
+              <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-sm tabular-nums text-body">
+                <span>
+                  Abonado {formatEuro(p.monto_abonado)}
+                  {tasaEuro && (
+                    <span className="text-stone">
+                      {" "}
+                      (≈ {formatBs(p.monto_abonado * tasaEuro)})
+                    </span>
+                  )}
+                </span>
                 {p.monto_pendiente > 0 && (
                   <span className="text-danger-hover">
-                    Pendiente {formatMonto(p.monto_pendiente)}
+                    Pendiente {formatEuro(p.monto_pendiente)}
+                    {tasaEuro && (
+                      <span className="text-stone">
+                        {" "}
+                        (≈ {formatBs(p.monto_pendiente * tasaEuro)})
+                      </span>
+                    )}
                   </span>
                 )}
               </div>

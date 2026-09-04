@@ -15,6 +15,7 @@ import {
   fetchViajeActivo,
   insertPasajero,
 } from "@/lib/api";
+import { fetchTasaEuro } from "@/lib/bcv";
 import type { NuevoPasajero, Passenger, Trip } from "@/lib/types";
 import { agruparPorZona } from "@/lib/zonas";
 import { getSupabaseClient } from "@/utils/supabase/client";
@@ -26,6 +27,18 @@ export default function DashboardPage() {
   const [passengers, setPassengers] = useState<Passenger[]>([]);
   const [estado, setEstado] = useState<Estado>("cargando");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [tasaEuro, setTasaEuro] = useState<number | null>(null);
+
+  // --- Tasa EUR/Bs del BCV (para mostrar la conversión de los montos) -----
+  useEffect(() => {
+    let vivo = true;
+    fetchTasaEuro().then((r) => {
+      if (vivo) setTasaEuro(r.tasa);
+    });
+    return () => {
+      vivo = false;
+    };
+  }, []);
 
   // --- Carga inicial: viaje activo + sus pasajeros -------------------------
   useEffect(() => {
@@ -188,7 +201,7 @@ export default function DashboardPage() {
     // Carga diferida de SheetJS: no entra en el bundle inicial (ahorra datos
     // móviles hasta que el coordinador realmente exporta).
     const { exportarPasajerosXlsx } = await import("@/lib/export-excel");
-    exportarPasajerosXlsx(passengers, trip.destino, trip.fecha_salida);
+    exportarPasajerosXlsx(passengers, trip.destino, trip.fecha_salida, tasaEuro);
   }
 
   // --- Estados de carga / error -----------------------------------------
@@ -245,19 +258,25 @@ export default function DashboardPage() {
               puestosTotales={trip.puestos_totales}
               precioPorPersona={trip.precio_por_persona}
               registrados={registrados}
+              tasaEuro={tasaEuro}
               onGuardarPuestos={guardarPuestos}
               onGuardarPrecio={guardarPrecio}
             />
             <RegistroForm
               onSubmit={agregarPasajero}
               precioPorPersona={trip.precio_por_persona}
+              tasaEuro={tasaEuro}
               disabled={lleno}
             />
           </div>
 
           <div className="space-y-4 lg:space-y-6">
             <ZonasPanel zonas={zonas} />
-            <PasajerosList passengers={passengers} onEliminar={quitarPasajero} />
+            <PasajerosList
+              passengers={passengers}
+              tasaEuro={tasaEuro}
+              onEliminar={quitarPasajero}
+            />
           </div>
         </div>
       </main>

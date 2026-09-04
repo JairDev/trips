@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { formatMonto } from "@/lib/format";
+import { formatBs, formatEuro } from "@/lib/format";
 import { CARD, SECTION_TITLE } from "@/lib/ui";
 
 interface FilaProps {
@@ -11,6 +11,7 @@ interface FilaProps {
   step: string;
   min: number;
   entero?: boolean;
+  secundario?: string;
   validar?: (n: number) => string | null;
   onGuardar: (n: number) => Promise<void>;
 }
@@ -27,6 +28,7 @@ function FilaEditable({
   step,
   min,
   entero = false,
+  secundario,
   validar,
   onGuardar,
 }: FilaProps) {
@@ -122,14 +124,19 @@ function FilaEditable({
             className="w-20 shrink-0 rounded-sm border border-ink bg-canvas px-2 py-0.5 text-right text-xl font-bold tabular-nums text-ink outline-none disabled:opacity-50"
           />
         ) : (
-          <button
-            type="button"
-            onClick={abrir}
-            aria-label={`Editar ${etiqueta.toLowerCase()}`}
-            className="shrink-0 rounded-sm px-2 py-0.5 text-right text-xl font-bold tabular-nums text-ink underline decoration-hairline decoration-dashed underline-offset-4 active:bg-surface-soft"
-          >
-            {mostrar(valor)}
-          </button>
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={abrir}
+              aria-label={`Editar ${etiqueta.toLowerCase()}`}
+              className="shrink-0 rounded-sm px-2 py-0.5 text-right text-xl font-bold tabular-nums text-ink underline decoration-hairline decoration-dashed underline-offset-4 active:bg-surface-soft"
+            >
+              {mostrar(valor)}
+            </button>
+            {secundario && (
+              <p className="mr-2 text-sm text-stone">{secundario}</p>
+            )}
+          </div>
         )}
       </div>
       {error && (
@@ -143,6 +150,7 @@ interface Props {
   puestosTotales: number;
   precioPorPersona: number;
   registrados: number;
+  tasaEuro: number | null;
   onGuardarPuestos: (nuevo: number) => Promise<void>;
   onGuardarPrecio: (nuevo: number) => Promise<void>;
 }
@@ -150,12 +158,14 @@ interface Props {
 /**
  * Ajustes del viaje (capacidad del bus y precio del paquete) editables en el
  * sitio. Al cambiar el precio, el backend recalcula el pendiente de todos los
- * pasajeros.
+ * pasajeros. El precio se muestra en euros con su equivalente en bolívares a
+ * la tasa BCV del día.
  */
 export default function AjustesViaje({
   puestosTotales,
   precioPorPersona,
   registrados,
+  tasaEuro,
   onGuardarPuestos,
   onGuardarPrecio,
 }: Props) {
@@ -181,12 +191,23 @@ export default function AjustesViaje({
         <FilaEditable
           etiqueta="Paquete por persona"
           valor={precioPorPersona}
-          mostrar={(v) => (v > 0 ? formatMonto(v) : "0,00")}
+          mostrar={(v) => formatEuro(v)}
+          secundario={
+            tasaEuro && precioPorPersona > 0
+              ? `≈ ${formatBs(precioPorPersona * tasaEuro)}`
+              : undefined
+          }
           step="0.01"
           min={0}
           onGuardar={onGuardarPrecio}
         />
       </div>
+
+      <p className="mt-3 border-t border-hairline pt-3 text-sm text-stone">
+        {tasaEuro
+          ? `Tasa BCV: ${formatBs(tasaEuro)} / €`
+          : "[!] Tasa BCV no disponible; se muestra solo en euros."}
+      </p>
     </section>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { formatBs } from "@/lib/format";
 import { calcularPendiente, derivarEstadoPago, redondear2 } from "@/lib/pagos";
 import {
   GRUPOS,
@@ -15,6 +16,7 @@ import { BTN_PRIMARY, CAMPO, CARD, SECTION_TITLE } from "@/lib/ui";
 interface Props {
   onSubmit: (nuevo: NuevoPasajero) => void | Promise<void>;
   precioPorPersona: number;
+  tasaEuro: number | null;
   disabled?: boolean;
 }
 
@@ -53,6 +55,7 @@ function Segmento<T extends string>({
 export default function RegistroForm({
   onSubmit,
   precioPorPersona,
+  tasaEuro,
   disabled = false,
 }: Props) {
   const zonasListId = useId();
@@ -166,16 +169,26 @@ export default function RegistroForm({
 
         <label className="block">
           <span className={LABEL}>Monto abonado</span>
-          <input
-            type="number"
-            inputMode="decimal"
-            min={0}
-            step="0.01"
-            className={CAMPO}
-            value={abonado}
-            onChange={(e) => setAbonado(e.target.value)}
-            placeholder="0.00"
-          />
+          <div className="relative">
+            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-body">
+              €
+            </span>
+            <input
+              type="number"
+              inputMode="decimal"
+              min={0}
+              step="0.01"
+              className={`${CAMPO} pl-7`}
+              value={abonado}
+              onChange={(e) => setAbonado(e.target.value)}
+              placeholder="0.00"
+            />
+          </div>
+          {tasaEuro && montoAbonado > 0 && (
+            <p className="mt-1 text-sm text-stone">
+              ≈ {formatBs(montoAbonado * tasaEuro)}
+            </p>
+          )}
         </label>
 
         {error && (
