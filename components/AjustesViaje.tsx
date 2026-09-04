@@ -143,8 +143,6 @@ interface Props {
   puestosTotales: number;
   precioPorPersona: number;
   registrados: number;
-  recaudado: number;
-  porCobrar: number;
   onGuardarPuestos: (nuevo: number) => Promise<void>;
   onGuardarPrecio: (nuevo: number) => Promise<void>;
 }
@@ -158,8 +156,6 @@ export default function AjustesViaje({
   puestosTotales,
   precioPorPersona,
   registrados,
-  recaudado,
-  porCobrar,
   onGuardarPuestos,
   onGuardarPrecio,
 }: Props) {
@@ -191,21 +187,6 @@ export default function AjustesViaje({
           onGuardar={onGuardarPrecio}
         />
       </div>
-
-      <dl className="mt-4 grid grid-cols-2 gap-2">
-        <div className="rounded-sm border border-hairline bg-surface-soft px-3 py-2.5">
-          <dt className="text-sm text-mute">Recaudado</dt>
-          <dd className="text-lg font-bold tabular-nums text-ink">
-            {formatMonto(recaudado)}
-          </dd>
-        </div>
-        <div className="rounded-sm border border-hairline bg-surface-soft px-3 py-2.5">
-          <dt className="text-sm text-mute">Por cobrar</dt>
-          <dd className="text-lg font-bold tabular-nums text-danger-hover">
-            {formatMonto(porCobrar)}
-          </dd>
-        </div>
-      </dl>
     </section>
   );
 }

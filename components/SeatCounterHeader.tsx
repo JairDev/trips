@@ -56,23 +56,15 @@ export default function SeatCounterHeader({
             <p className="text-sm text-mute">{formatFecha(fechaSalida)}</p>
           </div>
 
-          <div className="flex items-end justify-between gap-4 sm:justify-start sm:gap-6">
-            <div className="leading-none">
-              <span
-                className={`text-4xl font-bold tabular-nums sm:text-5xl ${tonoNumero}`}
-              >
-                {Math.max(0, disponibles)}
-              </span>
-              <span className="ml-2 text-sm font-medium text-mute">
-                {lleno ? "sin cupos" : "disponibles"}
-              </span>
-            </div>
-            <div className="pb-1 text-right text-sm tabular-nums text-mute">
-              <div className="text-ink">
-                {registrados} / {puestosTotales}
-              </div>
-              <div>ocupados</div>
-            </div>
+          <div className="leading-none">
+            <span
+              className={`text-4xl font-bold tabular-nums sm:text-5xl ${tonoNumero}`}
+            >
+              {Math.max(0, disponibles)}
+            </span>
+            <span className="ml-2 text-sm font-medium text-mute">
+              {lleno ? "sin cupos" : "disponibles"}
+            </span>
           </div>
 
           {onExport && (

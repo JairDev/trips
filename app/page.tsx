@@ -137,14 +137,6 @@ export default function DashboardPage() {
   const registrados = passengers.length;
   const lleno = trip ? registrados >= trip.puestos_totales : false;
   const zonas = useMemo(() => agruparPorZona(passengers), [passengers]);
-  const recaudado = useMemo(
-    () => passengers.reduce((s, p) => s + p.monto_abonado, 0),
-    [passengers],
-  );
-  const porCobrar = useMemo(
-    () => passengers.reduce((s, p) => s + p.monto_pendiente, 0),
-    [passengers],
-  );
 
   // --- Alta desde el Formulario Exprés (con validación de cupos) ----------
   const agregarPasajero = useCallback(
@@ -253,8 +245,6 @@ export default function DashboardPage() {
               puestosTotales={trip.puestos_totales}
               precioPorPersona={trip.precio_por_persona}
               registrados={registrados}
-              recaudado={recaudado}
-              porCobrar={porCobrar}
               onGuardarPuestos={guardarPuestos}
               onGuardarPrecio={guardarPrecio}
             />
