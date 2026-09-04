@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AjustesViaje from "@/components/AjustesViaje";
+import CajaTotal from "@/components/CajaTotal";
 import ExportFab from "@/components/ExportFab";
 import PasajerosList from "@/components/PasajerosList";
 import RegistroForm from "@/components/RegistroForm";
@@ -150,6 +151,14 @@ export default function DashboardPage() {
   const registrados = passengers.length;
   const lleno = trip ? registrados >= trip.puestos_totales : false;
   const zonas = useMemo(() => agruparPorZona(passengers), [passengers]);
+  const totalRecaudado = useMemo(
+    () => passengers.reduce((s, p) => s + p.monto_abonado, 0),
+    [passengers],
+  );
+  const totalPorCobrar = useMemo(
+    () => passengers.reduce((s, p) => s + p.monto_pendiente, 0),
+    [passengers],
+  );
 
   // --- Alta desde el Formulario Exprés (con validación de cupos) ----------
   const agregarPasajero = useCallback(
@@ -276,6 +285,11 @@ export default function DashboardPage() {
               passengers={passengers}
               tasaEuro={tasaEuro}
               onEliminar={quitarPasajero}
+            />
+            <CajaTotal
+              totalRecaudado={totalRecaudado}
+              totalPorCobrar={totalPorCobrar}
+              tasaEuro={tasaEuro}
             />
           </div>
         </div>
