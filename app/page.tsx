@@ -12,6 +12,7 @@ import SeatCounterHeader from "@/components/SeatCounterHeader";
 import Segmento from "@/components/Segmento";
 import ZonasPanel from "@/components/ZonasPanel";
 import {
+  actualizarAbonoPasajero,
   actualizarDestinoViaje,
   actualizarPrecioViaje,
   actualizarPuestosViaje,
@@ -271,6 +272,19 @@ export default function DashboardPage() {
     setPassengers((prev) => prev.filter((p) => p.id_viajero !== idViajero));
   }, []);
 
+  const registrarAbono = useCallback(
+    async (idViajero: string, nuevoMontoAbonadoEuro: number) => {
+      const actualizado = await actualizarAbonoPasajero(
+        idViajero,
+        nuevoMontoAbonadoEuro,
+      );
+      setPassengers((prev) =>
+        prev.map((p) => (p.id_viajero === idViajero ? actualizado : p)),
+      );
+    },
+    [],
+  );
+
   const agregarGasto = useCallback(
     async (nuevo: NuevoGasto) => {
       if (!trip) throw new Error("No hay viaje activo.");
@@ -414,7 +428,9 @@ export default function DashboardPage() {
                 <ZonasPanel zonas={zonas} />
                 <PasajerosList
                   passengers={passengers}
+                  precioPorPersona={trip.precio_por_persona}
                   tasaEuro={tasaEuro}
+                  onAbonar={registrarAbono}
                   onEliminar={quitarPasajero}
                 />
               </div>

@@ -79,6 +79,25 @@ export async function actualizarDestinoViaje(
   return data as Trip;
 }
 
+/**
+ * Fija el monto abonado (en euros) de un pasajero. El trigger de Postgres
+ * recalcula `monto_pendiente` y `estado_pago`, y el cambio llega por Realtime.
+ */
+export async function actualizarAbonoPasajero(
+  idViajero: string,
+  montoAbonado: number,
+): Promise<Passenger> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("passengers")
+    .update({ monto_abonado: montoAbonado })
+    .eq("id_viajero", idViajero)
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data as Passenger;
+}
+
 export async function eliminarPasajero(idViajero: string): Promise<void> {
   const supabase = getSupabaseClient();
   const { error } = await supabase

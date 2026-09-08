@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import AbonoModal from "@/components/AbonoModal";
 import { useFeedback } from "@/components/Feedback";
 import { formatBs, formatEuro } from "@/lib/format";
 import {
@@ -14,7 +15,9 @@ import { CARD } from "@/lib/ui";
 
 interface Props {
   passengers: Passenger[];
+  precioPorPersona: number;
   tasaEuro: number | null;
+  onAbonar: (idViajero: string, nuevoMontoAbonadoEuro: number) => Promise<void>;
   onEliminar: (idViajero: string) => void | Promise<void>;
 }
 
@@ -64,11 +67,23 @@ function AbonadoTexto({
   );
 }
 
-export default function PasajerosList({ passengers, tasaEuro, onEliminar }: Props) {
+export default function PasajerosList({
+  passengers,
+  precioPorPersona,
+  tasaEuro,
+  onAbonar,
+  onEliminar,
+}: Props) {
   const { confirmar, toast } = useFeedback();
   const [filtroEstado, setFiltroEstado] = useState<FiltroEstado>("Todos");
   const [filtroGrupo, setFiltroGrupo] = useState<FiltroGrupo>("Todos");
   const [eliminando, setEliminando] = useState<string | null>(null);
+  const [abonando, setAbonando] = useState<Passenger | null>(null);
+
+  // Mantiene el modal apuntando a la fila fresca (llega por Realtime al abonar).
+  const abonandoActual = abonando
+    ? (passengers.find((p) => p.id_viajero === abonando.id_viajero) ?? abonando)
+    : null;
 
   async function pedirEliminar(p: Passenger) {
     if (eliminando) return;
@@ -177,6 +192,14 @@ export default function PasajerosList({ passengers, tasaEuro, onEliminar }: Prop
                 </span>
                 <button
                   type="button"
+                  onClick={() => setAbonando(p)}
+                  aria-label={`Registrar abono de ${p.nombre_completo}`}
+                  className="min-h-8 px-1 text-sm text-accent active:text-accent-hover"
+                >
+                  [abonar]
+                </button>
+                <button
+                  type="button"
                   onClick={() => pedirEliminar(p)}
                   disabled={eliminando === p.id_viajero}
                   aria-label={`Eliminar a ${p.nombre_completo}`}
@@ -212,6 +235,16 @@ export default function PasajerosList({ passengers, tasaEuro, onEliminar }: Prop
           </li>
         ))}
       </ul>
+
+      {abonandoActual && (
+        <AbonoModal
+          passenger={abonandoActual}
+          precioPorPersona={precioPorPersona}
+          tasaEuro={tasaEuro}
+          onCerrar={() => setAbonando(null)}
+          onGuardar={(nuevo) => onAbonar(abonandoActual.id_viajero, nuevo)}
+        />
+      )}
     </section>
   );
 }
