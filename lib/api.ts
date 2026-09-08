@@ -134,3 +134,22 @@ export async function eliminarGasto(idGasto: string): Promise<void> {
   const { error } = await supabase.from("gastos").delete().eq("id_gasto", idGasto);
   if (error) throw new Error(error.message);
 }
+
+/**
+ * Borra todos los pasajeros y gastos del viaje para empezar de cero.
+ * El viaje (destino, fecha, puestos, precio) se conserva y se reutiliza.
+ */
+export async function vaciarViaje(idViaje: string): Promise<void> {
+  const supabase = getSupabaseClient();
+  const { error: errPax } = await supabase
+    .from("passengers")
+    .delete()
+    .eq("id_viaje", idViaje);
+  if (errPax) throw new Error(errPax.message);
+
+  const { error: errGastos } = await supabase
+    .from("gastos")
+    .delete()
+    .eq("id_viaje", idViaje);
+  if (errGastos) throw new Error(errGastos.message);
+}

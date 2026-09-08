@@ -2,7 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { formatBs, formatEuro } from "@/lib/format";
-import { CARD, SECTION_TITLE } from "@/lib/ui";
+import { BTN_SECONDARY, CARD, SECTION_TITLE } from "@/lib/ui";
+
+// Mismo box para el valor mostrado y el input: idéntico alto -> al pasar a
+// edición la UI no se mueve ni un píxel.
+const CELDA =
+  "w-28 shrink-0 rounded-sm border px-2 py-0.5 text-right text-xl font-bold " +
+  "tabular-nums text-ink";
 
 interface FilaProps {
   etiqueta: string;
@@ -11,15 +17,17 @@ interface FilaProps {
   step: string;
   min: number;
   entero?: boolean;
-  secundario?: string;
+  /** Línea secundaria (ej. "≈ Bs X"). Si se pasa, su espacio queda reservado
+   *  siempre para que la fila no cambie de alto al editar. */
+  secundario?: (v: number) => string | null;
   validar?: (n: number) => string | null;
   onGuardar: (n: number) => Promise<void>;
 }
 
 /**
- * Fila etiqueta / valor. Al pulsar el valor, se convierte en un input en el
- * MISMO sitio (sin botones ni cambios de layout). Enter o salir del campo
- * confirma; Escape cancela.
+ * Fila etiqueta / valor. Al pulsar el valor (o el lápiz) se convierte en un
+ * input EN EL MISMO SITIO, sin ningún cambio visual en la fila. Enter o salir
+ * del campo confirma; Escape cancela.
  */
 function FilaEditable({
   etiqueta,
@@ -86,59 +94,68 @@ function FilaEditable({
     }
   }
 
+  const valorSecundario = editando
+    ? Number(texto.replace(",", ".")) || 0
+    : valor;
+
   return (
     <div className="py-3.5 first:pt-0 last:pb-0">
       <div className="flex items-center justify-between gap-3">
         <p className="min-w-0 text-sm font-medium text-body">{etiqueta}</p>
 
-        {editando ? (
-          <input
-            ref={inputRef}
-            type="number"
-            inputMode={entero ? "numeric" : "decimal"}
-            min={min}
-            step={step}
-            autoFocus
-            disabled={guardando}
-            value={texto}
-            onChange={(e) => setTexto(e.target.value)}
-            onFocus={(e) => e.currentTarget.select()}
-            onBlur={() => {
-              if (cancelarRef.current) {
-                cancelarRef.current = false;
-                cancelar();
-              } else {
-                confirmar();
-              }
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                inputRef.current?.blur();
-              } else if (e.key === "Escape") {
-                e.preventDefault();
-                cancelarRef.current = true;
-                inputRef.current?.blur();
-              }
-            }}
-            className="w-20 shrink-0 rounded-sm border border-ink bg-canvas px-2 py-0.5 text-right text-xl font-bold tabular-nums text-ink outline-none disabled:opacity-50"
-          />
-        ) : (
-          <div className="text-right">
+        <div className="shrink-0 text-right">
+          {editando ? (
+            <input
+              ref={inputRef}
+              type="number"
+              inputMode={entero ? "numeric" : "decimal"}
+              min={min}
+              step={step}
+              autoFocus
+              disabled={guardando}
+              value={texto}
+              onChange={(e) => setTexto(e.target.value)}
+              onFocus={(e) => e.currentTarget.select()}
+              onBlur={() => {
+                if (cancelarRef.current) {
+                  cancelarRef.current = false;
+                  cancelar();
+                } else {
+                  confirmar();
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  inputRef.current?.blur();
+                } else if (e.key === "Escape") {
+                  e.preventDefault();
+                  cancelarRef.current = true;
+                  inputRef.current?.blur();
+                }
+              }}
+              className={`${CELDA} border-ink bg-canvas outline-none disabled:opacity-50`}
+            />
+          ) : (
             <button
               type="button"
               onClick={abrir}
               aria-label={`Editar ${etiqueta.toLowerCase()}`}
-              className="shrink-0 rounded-sm px-2 py-0.5 text-right text-xl font-bold tabular-nums text-ink underline decoration-hairline decoration-dashed underline-offset-4 active:bg-surface-soft"
+              className={`${CELDA} border-transparent active:bg-surface-soft`}
             >
               {mostrar(valor)}
+              <span className="ml-1.5 font-normal text-accent">[✎]</span>
             </button>
-            {secundario && (
-              <p className="mr-2 text-sm text-stone">{secundario}</p>
-            )}
-          </div>
-        )}
+          )}
+
+          {secundario && (
+            <p className="mr-2 mt-1 text-sm text-stone">
+              {secundario(valorSecundario) ?? " "}
+            </p>
+          )}
+        </div>
       </div>
+
       {error && (
         <p className="mt-1.5 text-right text-sm text-danger-hover">[x] {error}</p>
       )}
@@ -153,6 +170,7 @@ interface Props {
   tasaEuro: number | null;
   onGuardarPuestos: (nuevo: number) => Promise<void>;
   onGuardarPrecio: (nuevo: number) => Promise<void>;
+  onNuevoViaje: () => Promise<void>;
 }
 
 /**
@@ -168,7 +186,20 @@ export default function AjustesViaje({
   tasaEuro,
   onGuardarPuestos,
   onGuardarPrecio,
+  onNuevoViaje,
 }: Props) {
+  const [reiniciando, setReiniciando] = useState(false);
+
+  async function reiniciar() {
+    if (reiniciando) return;
+    setReiniciando(true);
+    try {
+      await onNuevoViaje();
+    } finally {
+      setReiniciando(false);
+    }
+  }
+
   return (
     <section className={CARD}>
       <h2 className={SECTION_TITLE}>Ajustes del viaje</h2>
@@ -193,8 +224,8 @@ export default function AjustesViaje({
           valor={precioPorPersona}
           mostrar={(v) => formatEuro(v)}
           secundario={
-            tasaEuro && precioPorPersona > 0
-              ? `≈ ${formatBs(precioPorPersona * tasaEuro)}`
+            tasaEuro
+              ? (v) => (v > 0 ? `≈ ${formatBs(v * tasaEuro)}` : null)
               : undefined
           }
           step="0.01"
@@ -208,6 +239,15 @@ export default function AjustesViaje({
           ? `Tasa BCV: ${formatBs(tasaEuro)} / €`
           : "[!] Tasa BCV no disponible; se muestra solo en euros."}
       </p>
+
+      <button
+        type="button"
+        onClick={reiniciar}
+        disabled={reiniciando}
+        className={`${BTN_SECONDARY} mt-3 w-full disabled:opacity-50`}
+      >
+        {reiniciando ? "Reiniciando..." : "Nuevo viaje (borra pasajeros y gastos)"}
+      </button>
     </section>
   );
 }

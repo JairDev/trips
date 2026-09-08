@@ -20,6 +20,7 @@ import {
   fetchViajeActivo,
   insertGasto,
   insertPasajero,
+  vaciarViaje,
 } from "@/lib/api";
 import { fetchTasaEuro } from "@/lib/bcv";
 import type { Gasto, NuevoGasto, NuevoPasajero, Passenger, Trip } from "@/lib/types";
@@ -275,6 +276,31 @@ export default function DashboardPage() {
     setGastos((prev) => prev.filter((g) => g.id_gasto !== idGasto));
   }, []);
 
+  const nuevoViaje = useCallback(async () => {
+    if (!trip) return;
+    const ok = window.confirm(
+      `¿Empezar un viaje nuevo?\n\n` +
+        `Se borrarán ${passengers.length} pasajero(s) y ${gastos.length} gasto(s) ` +
+        `de "${trip.destino}". Esta acción no se puede deshacer.\n\n` +
+        `Los puestos del bus y el precio del paquete se conservan; ajústalos ` +
+        `para la próxima salida.`,
+    );
+    if (!ok) return;
+
+    try {
+      await vaciarViaje(trip.id_viaje);
+      setPassengers([]);
+      setGastos([]);
+      setPestana("pasajeros");
+    } catch (err) {
+      window.alert(
+        err instanceof Error
+          ? err.message
+          : "No se pudo reiniciar el viaje. Intenta de nuevo.",
+      );
+    }
+  }, [trip, passengers.length, gastos.length]);
+
   async function exportar() {
     if (!trip || passengers.length === 0) return;
     // Carga diferida de SheetJS: no entra en el bundle inicial (ahorra datos
@@ -340,6 +366,7 @@ export default function DashboardPage() {
               tasaEuro={tasaEuro}
               onGuardarPuestos={guardarPuestos}
               onGuardarPrecio={guardarPrecio}
+              onNuevoViaje={nuevoViaje}
             />
             <RegistroForm
               onSubmit={agregarPasajero}

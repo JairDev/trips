@@ -45,11 +45,15 @@
   color-scheme: light;
 }
 
-/* En v4 el color de borde por defecto es currentColor: lo fijamos al hairline. */
-*,
-::before,
-::after {
-  border-color: var(--color-hairline);
+/* En v4 el color de borde por defecto es currentColor: lo fijamos al hairline.
+   Va en @layer base para que utilidades como `border-transparent` lo puedan
+   sobrescribir (las reglas sin capa ganarían siempre, si no). */
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-hairline);
+  }
 }
 
 body {
