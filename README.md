@@ -47,6 +47,22 @@ npm run dev        # http://localhost:3000
 - **Fase 2** — Conexión Supabase, inserción validada y sincronización Realtime. ✅
 - **Fase 3** — Agrupación por zonas + exportación local a Excel. ✅
 
+## Mantener Supabase activo (plan gratis)
+
+Un proyecto de Supabase gratis se **pausa tras ~7 días sin actividad**. El
+workflow [`.github/workflows/keep-supabase-alive.yml`](.github/workflows/keep-supabase-alive.yml)
+hace una consulta mínima a la base una vez al día para evitarlo.
+
+Configuración (una vez, en GitHub):
+`Settings → Secrets and variables → Actions → New repository secret`
+
+| Secret | Valor |
+| --- | --- |
+| `SUPABASE_URL` | `https://<tu-ref>.supabase.co` |
+| `SUPABASE_ANON_KEY` | la anon key (misma pública que usa el frontend) |
+
+Probarlo: pestaña `Actions` → `keep-supabase-alive` → `Run workflow`.
+
 ## Antes de producción
 
 Las políticas RLS actuales permiten lectura/escritura pública (anónima) para

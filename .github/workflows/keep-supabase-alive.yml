@@ -1,0 +1,51 @@
+name: keep-supabase-alive
+
+# Los proyectos de Supabase en el plan gratis se PAUSAN tras ~7 días sin
+# actividad. Este workflow hace una consulta mínima a la base una vez al día
+# para que el contador de inactividad nunca llegue a 7 días.
+#
+# ── Configuración (una sola vez) ─────────────────────────────────────────
+#  Repo → Settings → Secrets and variables → Actions → New repository secret:
+#    SUPABASE_URL       = https://<tu-ref>.supabase.co
+#    SUPABASE_ANON_KEY  = <tu anon key>   (la misma pública que usa el frontend)
+#
+#  Para probarlo: pestaña Actions → "keep-supabase-alive" → Run workflow.
+#
+# ── Nota ────────────────────────────────────────────────────────────────
+#  GitHub deshabilita los cron de repos sin commits durante 60 días (avisa
+#  por email para reactivarlo con un clic). Si eso molesta, una alternativa
+#  externa es cron-job.org apuntando a la misma URL.
+
+on:
+  schedule:
+    - cron: "23 5 * * *" # diario a las 05:23 UTC (minuto no-redondo: menos cola)
+  workflow_dispatch: {} # permite dispararlo a mano
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consulta mínima a Supabase (evita la pausa por inactividad)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "Faltan los secrets SUPABASE_URL / SUPABASE_ANON_KEY." >&2
+            exit 1
+          fi
+
+          # Lectura trivial de la tabla trips (RLS de lectura pública). Si algún
+          # día se cierra la RLS, apuntar a "$SUPABASE_URL/rest/v1/" (solo pide
+          # apikey) o a otra tabla legible.
+          code=$(curl -sS -o /dev/null -w '%{http_code}' \
+            --max-time 90 --retry 3 --retry-delay 20 --retry-all-errors \
+            "$SUPABASE_URL/rest/v1/trips?select=id_viaje&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY")
+
+          echo "HTTP $code"
+          if [ "$code" != "200" ]; then
+            echo "Respuesta inesperada del proyecto Supabase." >&2
+            exit 1
+          fi
