@@ -60,3 +60,6 @@ export interface Gasto {
 }
 
 export type NuevoGasto = Omit<Gasto, 'id_gasto' | 'id_viaje' | 'created_at'>;
+
+/** Destino de un viaje recién reiniciado (sin nombre todavía). */
+export const DESTINO_SIN_DEFINIR = 'Introduce el nombre del destino';

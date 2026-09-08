@@ -85,13 +85,13 @@ export default function SeatCounterHeader({
     }
   }
 
+  const sinConfigurar = puestosTotales <= 0; // viaje recién reiniciado
   const disponibles = puestosTotales - registrados;
-  const lleno = disponibles <= 0;
-  const casiLleno = !lleno && disponibles <= 4;
-  const ocupacion = Math.min(
-    100,
-    Math.round((registrados / puestosTotales) * 100),
-  );
+  const lleno = !sinConfigurar && disponibles <= 0;
+  const casiLleno = !lleno && !sinConfigurar && disponibles <= 4;
+  const ocupacion = sinConfigurar
+    ? 0
+    : Math.min(100, Math.round((registrados / puestosTotales) * 100));
 
   const tonoNumero = lleno
     ? "text-danger"
@@ -171,7 +171,11 @@ export default function SeatCounterHeader({
               {Math.max(0, disponibles)}
             </span>
             <span className="ml-2 text-sm font-medium text-mute">
-              {lleno ? "sin cupos" : "puestos disponibles"}
+              {sinConfigurar
+                ? "puestos sin definir"
+                : lleno
+                  ? "sin cupos"
+                  : "puestos disponibles"}
             </span>
           </div>
 
@@ -211,6 +215,12 @@ export default function SeatCounterHeader({
         {lleno && (
           <p className="mt-2 text-sm font-medium text-danger">
             [x] Autobús completo. No se pueden registrar más pasajeros.
+          </p>
+        )}
+        {sinConfigurar && (
+          <p className="mt-2 text-sm text-mute">
+            [!] Define el destino, los puestos y el precio para empezar a
+            registrar.
           </p>
         )}
       </div>

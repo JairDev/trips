@@ -30,6 +30,7 @@ interface Props {
   precioPorPersona: number;
   tasaEuro: number | null;
   disabled?: boolean;
+  disabledLabel?: string;
 }
 
 const LABEL = "mb-1 block text-sm font-medium text-body";
@@ -39,6 +40,7 @@ export default function RegistroForm({
   precioPorPersona,
   tasaEuro,
   disabled = false,
+  disabledLabel = "Autobús completo",
 }: Props) {
   const zonasListId = useId();
   const [nombre, setNombre] = useState("");
@@ -241,7 +243,7 @@ export default function RegistroForm({
           className={`${BTN_PRIMARY} w-full`}
         >
           {disabled
-            ? "Autobús completo"
+            ? disabledLabel
             : enviando
               ? "Registrando..."
               : "Registrar"}

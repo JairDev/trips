@@ -1,5 +1,12 @@
 import { getSupabaseClient } from "@/utils/supabase/client";
-import type { Gasto, NuevoGasto, NuevoPasajero, Passenger, Trip } from "./types";
+import {
+  DESTINO_SIN_DEFINIR,
+  type Gasto,
+  type NuevoGasto,
+  type NuevoPasajero,
+  type Passenger,
+  type Trip,
+} from "./types";
 
 /**
  * Viaje "activo": la próxima salida programada (fecha_salida >= hoy).
@@ -171,11 +178,26 @@ export async function eliminarGasto(idGasto: string): Promise<void> {
 }
 
 /**
- * Borra todos los pasajeros y gastos del viaje para empezar de cero.
- * El viaje (destino, fecha, puestos, precio) se conserva y se reutiliza.
+ * Empieza un viaje nuevo sobre el mismo registro: borra todos los pasajeros y
+ * gastos, y deja el destino, los puestos y el precio en blanco (0 / texto guía)
+ * para que el coordinador los configure. Devuelve el viaje ya reseteado.
  */
-export async function vaciarViaje(idViaje: string): Promise<void> {
+export async function vaciarViaje(idViaje: string): Promise<Trip> {
   const supabase = getSupabaseClient();
+
+  // Primero el reset del viaje: si falla (p. ej. constraint), no se borra nada.
+  const { data, error } = await supabase
+    .from("trips")
+    .update({
+      destino: DESTINO_SIN_DEFINIR,
+      puestos_totales: 0,
+      precio_por_persona: 0,
+    })
+    .eq("id_viaje", idViaje)
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+
   const { error: errPax } = await supabase
     .from("passengers")
     .delete()
@@ -187,4 +209,6 @@ export async function vaciarViaje(idViaje: string): Promise<void> {
     .delete()
     .eq("id_viaje", idViaje);
   if (errGastos) throw new Error(errGastos.message);
+
+  return data as Trip;
 }

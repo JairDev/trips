@@ -313,7 +313,8 @@ export default function DashboardPage() {
             gasto(s) de “{trip.destino}”.
           </p>
           <p className="mt-2">
-            Los puestos del bus y el precio del paquete se conservan.
+            El destino, los puestos del bus y el precio del paquete quedan en
+            blanco para que los configures.
           </p>
           <p className="mt-2 font-medium text-danger-hover">
             Esta acción no se puede deshacer.
@@ -326,7 +327,8 @@ export default function DashboardPage() {
     if (!ok) return;
 
     try {
-      await vaciarViaje(trip.id_viaje);
+      const viaje = await vaciarViaje(trip.id_viaje);
+      setTrip(viaje);
       setPassengers([]);
       setGastos([]);
       setPestana("pasajeros");
@@ -412,6 +414,11 @@ export default function DashboardPage() {
               precioPorPersona={trip.precio_por_persona}
               tasaEuro={tasaEuro}
               disabled={lleno}
+              disabledLabel={
+                trip.puestos_totales <= 0
+                  ? "Define los puestos del bus primero"
+                  : "Autobús completo"
+              }
             />
           </div>
 

@@ -13,6 +13,7 @@
 > - [`migrations/0003_gastos.sql`](./migrations/0003_gastos.sql) — crea la tabla `gastos` (transporte, snacks, etc.).
 > - [`migrations/0004_precision_montos.sql`](./migrations/0004_precision_montos.sql) — sube a 6 decimales los montos en euros para que la conversión a bolívares vuelva exacta.
 > - [`migrations/0005_tasa_bcv.sql`](./migrations/0005_tasa_bcv.sql) — crea la tabla `tasa_bcv` que llena el cron diario de GitHub Actions.
+> - [`migrations/0006_puestos_cero.sql`](./migrations/0006_puestos_cero.sql) — permite `puestos_totales = 0` (el botón "nuevo viaje" deja el viaje en blanco).
 
 Esto crea:
 

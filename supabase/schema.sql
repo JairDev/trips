@@ -21,7 +21,7 @@ create table if not exists public.trips (
   id_viaje        uuid primary key default gen_random_uuid(),
   destino            text        not null,
   fecha_salida       date        not null,
-  puestos_totales    integer     not null check (puestos_totales > 0),
+  puestos_totales    integer     not null check (puestos_totales >= 0),
   precio_por_persona numeric(10, 2) not null default 0
                        check (precio_por_persona >= 0),
   created_at         timestamptz not null default now()
