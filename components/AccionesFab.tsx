@@ -76,11 +76,11 @@ export default function AccionesFab({
         <button
           type="button"
           aria-expanded={abierto}
-          aria-label="Acciones"
+          aria-label={abierto ? "Cerrar acciones" : "Acciones"}
           onClick={() => setAbierto((v) => !v)}
           className="rounded-sm bg-ink px-4 py-3 text-sm font-medium text-canvas active:bg-ink-deep"
         >
-          {abierto ? "[x] cerrar" : "[≡] acciones"}
+          {abierto ? "[x]" : "[≡]"}
         </button>
       </div>
     </div>
