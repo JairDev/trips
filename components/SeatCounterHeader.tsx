@@ -48,7 +48,11 @@ export default function SeatCounterHeader({
   const [textoDestino, setTextoDestino] = useState("");
   const [guardandoDestino, setGuardandoDestino] = useState(false);
   const [errorDestino, setErrorDestino] = useState<string | null>(null);
+  // Ancho que tenía el texto del destino al abrir el editor: el input toma ese
+  // mismo ancho para que no se mueva nada a los lados.
+  const [anchoDestino, setAnchoDestino] = useState<number | null>(null);
   const destinoRef = useRef<HTMLInputElement>(null);
+  const destinoBtnRef = useRef<HTMLButtonElement>(null);
   const cancelarDestinoRef = useRef(false);
 
   useEffect(() => {
@@ -56,6 +60,7 @@ export default function SeatCounterHeader({
   }, [errorDestino, editandoDestino]);
 
   function abrirDestino() {
+    setAnchoDestino(destinoBtnRef.current?.offsetWidth ?? null);
     setTextoDestino(destino);
     setErrorDestino(null);
     setEditandoDestino(true);
@@ -141,10 +146,12 @@ export default function SeatCounterHeader({
                       destinoRef.current?.blur();
                     }
                   }}
-                  className="w-[200px] max-w-full rounded-sm border border-ink bg-canvas px-1.5 text-base font-bold text-ink outline-none disabled:opacity-50"
+                  style={anchoDestino ? { width: `${anchoDestino}px` } : undefined}
+                  className="max-w-full rounded-sm border border-ink bg-canvas px-1.5 text-base font-bold text-ink outline-none disabled:opacity-50"
                 />
               ) : (
                 <button
+                  ref={destinoBtnRef}
                   type="button"
                   onClick={abrirDestino}
                   aria-label="Editar destino"
