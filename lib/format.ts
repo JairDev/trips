@@ -34,15 +34,3 @@ export function parseMontoMascara(texto: string): number {
   const digitos = texto.replace(/\D/g, '');
   return digitos === '' ? 0 : Number(digitos) / 100;
 }
-
-/** Fecha 'YYYY-MM-DD' -> 'sáb, 14 sep 2026' sin desfases de zona horaria. */
-export function formatFecha(iso: string): string {
-  const [y, m, d] = iso.split('-').map(Number);
-  const fecha = new Date(y, (m ?? 1) - 1, d ?? 1);
-  return fecha.toLocaleDateString('es-VE', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-}

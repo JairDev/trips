@@ -358,7 +358,6 @@ export default function DashboardPage() {
     <>
       <SeatCounterHeader
         destino={trip.destino}
-        fechaSalida={trip.fecha_salida}
         puestosTotales={trip.puestos_totales}
         registrados={registrados}
         onGuardarDestino={guardarDestino}

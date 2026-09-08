@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { formatFecha } from "@/lib/format";
 
 interface Props {
   destino: string;
-  fechaSalida: string;
   puestosTotales: number;
   registrados: number;
   onGuardarDestino: (nuevo: string) => Promise<void>;
@@ -26,7 +24,6 @@ const BTN_HEADER =
  */
 export default function SeatCounterHeader({
   destino,
-  fechaSalida,
   puestosTotales,
   registrados,
   onGuardarDestino,
@@ -160,9 +157,6 @@ export default function SeatCounterHeader({
                 </button>
               )}
             </h1>
-            <p className="px-1.5 text-sm text-mute">
-              {formatFecha(fechaSalida)}
-            </p>
             {errorDestino && (
               <p className="px-1.5 text-sm text-danger-hover">
                 [x] {errorDestino}
