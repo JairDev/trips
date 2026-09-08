@@ -141,7 +141,7 @@ export default function SeatCounterHeader({
                       destinoRef.current?.blur();
                     }
                   }}
-                  className="w-full max-w-xs rounded-sm border border-ink bg-canvas px-1.5 text-base font-bold text-ink outline-none disabled:opacity-50"
+                  className="w-[200px] max-w-full rounded-sm border border-ink bg-canvas px-1.5 text-base font-bold text-ink outline-none disabled:opacity-50"
                 />
               ) : (
                 <button
