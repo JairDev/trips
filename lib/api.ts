@@ -63,6 +63,22 @@ export async function actualizarPuestosViaje(
   return data as Trip;
 }
 
+/** Actualiza el nombre del destino del viaje. */
+export async function actualizarDestinoViaje(
+  idViaje: string,
+  destino: string,
+): Promise<Trip> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("trips")
+    .update({ destino })
+    .eq("id_viaje", idViaje)
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data as Trip;
+}
+
 export async function eliminarPasajero(idViajero: string): Promise<void> {
   const supabase = getSupabaseClient();
   const { error } = await supabase

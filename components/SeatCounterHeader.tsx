@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatFecha } from "@/lib/format";
 
 interface Props {
@@ -8,6 +8,7 @@ interface Props {
   fechaSalida: string;
   puestosTotales: number;
   registrados: number;
+  onGuardarDestino: (nuevo: string) => Promise<void>;
   onExport?: () => void;
   exportDisabled?: boolean;
   onNuevoViaje?: () => void | Promise<void>;
@@ -28,6 +29,7 @@ export default function SeatCounterHeader({
   fechaSalida,
   puestosTotales,
   registrados,
+  onGuardarDestino,
   onExport,
   exportDisabled = false,
   onNuevoViaje,
@@ -41,6 +43,48 @@ export default function SeatCounterHeader({
       await onNuevoViaje();
     } finally {
       setReiniciando(false);
+    }
+  }
+
+  // --- Edición en el sitio del nombre del destino -------------------------
+  const [editandoDestino, setEditandoDestino] = useState(false);
+  const [textoDestino, setTextoDestino] = useState("");
+  const [guardandoDestino, setGuardandoDestino] = useState(false);
+  const [errorDestino, setErrorDestino] = useState<string | null>(null);
+  const destinoRef = useRef<HTMLInputElement>(null);
+  const cancelarDestinoRef = useRef(false);
+
+  useEffect(() => {
+    if (errorDestino && editandoDestino) destinoRef.current?.focus();
+  }, [errorDestino, editandoDestino]);
+
+  function abrirDestino() {
+    setTextoDestino(destino);
+    setErrorDestino(null);
+    setEditandoDestino(true);
+  }
+
+  async function confirmarDestino() {
+    if (guardandoDestino) return;
+    const limpio = textoDestino.trim();
+
+    if (limpio === "" || limpio === destino) {
+      setEditandoDestino(false);
+      setErrorDestino(null);
+      return;
+    }
+
+    setGuardandoDestino(true);
+    setErrorDestino(null);
+    try {
+      await onGuardarDestino(limpio);
+      setEditandoDestino(false);
+    } catch (err) {
+      setErrorDestino(
+        err instanceof Error ? err.message : "No se pudo guardar el destino.",
+      );
+    } finally {
+      setGuardandoDestino(false);
     }
   }
 
@@ -71,10 +115,59 @@ export default function SeatCounterHeader({
       <div className="mx-auto max-w-[84rem] px-4 pt-3 pb-3 lg:px-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
           <div className="min-w-0">
-            <h1 className="truncate text-base font-bold text-ink">
-              {destino}
+            <h1 className="min-w-0 text-base font-bold">
+              {editandoDestino ? (
+                <input
+                  ref={destinoRef}
+                  autoFocus
+                  disabled={guardandoDestino}
+                  maxLength={80}
+                  value={textoDestino}
+                  onChange={(e) => setTextoDestino(e.target.value)}
+                  onFocus={(e) => e.currentTarget.select()}
+                  onBlur={() => {
+                    if (cancelarDestinoRef.current) {
+                      cancelarDestinoRef.current = false;
+                      setEditandoDestino(false);
+                      setErrorDestino(null);
+                    } else {
+                      confirmarDestino();
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      destinoRef.current?.blur();
+                    } else if (e.key === "Escape") {
+                      e.preventDefault();
+                      cancelarDestinoRef.current = true;
+                      destinoRef.current?.blur();
+                    }
+                  }}
+                  className="w-full max-w-xs rounded-sm border border-ink bg-canvas px-1.5 text-base font-bold text-ink outline-none disabled:opacity-50"
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={abrirDestino}
+                  aria-label="Editar destino"
+                  className="flex min-w-0 max-w-full items-center gap-1.5 rounded-sm border border-transparent px-1.5 text-left active:bg-surface-soft"
+                >
+                  <span className="truncate text-ink">{destino}</span>
+                  <span className="shrink-0 text-sm font-normal text-accent">
+                    [✎]
+                  </span>
+                </button>
+              )}
             </h1>
-            <p className="text-sm text-mute">{formatFecha(fechaSalida)}</p>
+            <p className="px-1.5 text-sm text-mute">
+              {formatFecha(fechaSalida)}
+            </p>
+            {errorDestino && (
+              <p className="px-1.5 text-sm text-danger-hover">
+                [x] {errorDestino}
+              </p>
+            )}
           </div>
 
           <div className="leading-none">

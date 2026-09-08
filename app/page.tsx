@@ -11,6 +11,7 @@ import SeatCounterHeader from "@/components/SeatCounterHeader";
 import Segmento from "@/components/Segmento";
 import ZonasPanel from "@/components/ZonasPanel";
 import {
+  actualizarDestinoViaje,
   actualizarPrecioViaje,
   actualizarPuestosViaje,
   eliminarGasto,
@@ -254,6 +255,14 @@ export default function DashboardPage() {
     [trip],
   );
 
+  const guardarDestino = useCallback(
+    async (nuevo: string) => {
+      if (!trip) throw new Error("No hay viaje activo.");
+      setTrip(await actualizarDestinoViaje(trip.id_viaje, nuevo));
+    },
+    [trip],
+  );
+
   const quitarPasajero = useCallback(async (idViajero: string) => {
     await eliminarPasajero(idViajero);
     // Quita ya de la lista; el evento Realtime DELETE luego es idempotente.
@@ -352,6 +361,7 @@ export default function DashboardPage() {
         fechaSalida={trip.fecha_salida}
         puestosTotales={trip.puestos_totales}
         registrados={registrados}
+        onGuardarDestino={guardarDestino}
         onExport={exportar}
         exportDisabled={registrados === 0}
         onNuevoViaje={nuevoViaje}
