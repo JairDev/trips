@@ -27,7 +27,7 @@ interface Props {
   onGuardar: (nuevoMontoAbonadoEuro: number) => Promise<void>;
 }
 
-type Modo = "Sumar un pago" | "Corregir el total";
+type Modo = "Sumar un pago" | "Corregir monto";
 type Moneda = "€" | "Bs";
 
 const ESTADO_TONO: Record<string, string> = {
@@ -86,7 +86,7 @@ export default function AbonoModal({
       setError("Indica cuánto abonó (mayor a 0).");
       return;
     }
-    // "Corregir el total": se permite 0 (p. ej. para corregir un abono erróneo).
+    // "Corregir monto": se permite 0 (p. ej. para corregir un abono erróneo).
     if (nuevoAbonado === passenger.monto_abonado) {
       onCerrar();
       return;
@@ -121,7 +121,7 @@ export default function AbonoModal({
 
         <div className="mt-4 space-y-3">
           <Segmento
-            opciones={["Sumar un pago", "Corregir el total"] as const}
+            opciones={["Sumar un pago", "Corregir monto"] as const}
             valor={modo}
             onChange={setModo}
           />
