@@ -1,0 +1,73 @@
+name: scrape-tasa-bcv
+
+# Raspa la tasa EUR->Bs de bcv.org.ve una vez al día y la guarda en la tabla
+# `tasa_bcv` de Supabase (fila única id=1). La app solo lee esa fila; ya no
+# raspa el BCV en cada carga.
+#
+# Usa los mismos secrets que keep-supabase-alive:
+#   SUPABASE_URL, SUPABASE_ANON_KEY
+#
+# El BCV sirve una cadena de certificados TLS incompleta desde hace años; por
+# eso se desactiva la verificación SOLO para leer ese dato público.
+
+on:
+  schedule:
+    - cron: "10 13 * * *" # diario ~09:10 hora Venezuela (UTC-4)
+  workflow_dispatch: {} # para dispararlo a mano
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Raspar tasa del BCV y guardarla en Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          python3 - <<'PY'
+          import os, re, ssl, json, sys, urllib.request
+
+          url = os.environ["SUPABASE_URL"]
+          key = os.environ["SUPABASE_ANON_KEY"]
+          if not url or not key:
+              sys.exit("Faltan los secrets SUPABASE_URL / SUPABASE_ANON_KEY.")
+
+          ctx = ssl.create_default_context()
+          ctx.check_hostname = False
+          ctx.verify_mode = ssl.CERT_NONE
+          req = urllib.request.Request(
+              "https://www.bcv.org.ve/", headers={"User-Agent": "Mozilla/5.0"}
+          )
+          html = urllib.request.urlopen(req, timeout=60, context=ctx).read().decode(
+              "utf-8", "replace"
+          )
+
+          i = html.find('id="euro"')
+          if i == -1:
+              sys.exit("No se encontró el bloque #euro en el HTML del BCV.")
+          m = re.search(r'strong-tb[^>]*>\s*([\d.,]+)', html[i : i + 800])
+          if not m:
+              sys.exit("No se encontró la cifra dentro de #euro.")
+
+          tasa = float(m.group(1).strip().replace(".", "").replace(",", "."))
+          if not (tasa > 0):
+              sys.exit(f"Tasa inválida: {tasa}")
+          print("Tasa BCV EUR/Bs =", tasa)
+
+          body = json.dumps({"id": 1, "eur_bs": tasa}).encode()
+          r = urllib.request.Request(
+              f"{url}/rest/v1/tasa_bcv?on_conflict=id",
+              data=body,
+              method="POST",
+              headers={
+                  "apikey": key,
+                  "Authorization": f"Bearer {key}",
+                  "Content-Type": "application/json",
+                  "Prefer": "resolution=merge-duplicates",
+              },
+          )
+          resp = urllib.request.urlopen(r, timeout=30)
+          print("Supabase HTTP", resp.status)
+          if resp.status >= 300:
+              sys.exit("El upsert a Supabase falló.")
+          PY

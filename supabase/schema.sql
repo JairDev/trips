@@ -94,6 +94,34 @@ comment on table public.gastos is 'Gastos operativos del viaje. Monto en euros (
 create index if not exists gastos_id_viaje_idx
   on public.gastos (id_viaje);
 
+-- -----------------------------------------------------------------------------
+--  Tabla: tasa_bcv  (Tasa EUR->Bs del BCV)
+--
+--  Fila única (id = 1). La escribe el cron de GitHub Actions
+--  (.github/workflows/scrape-tasa-bcv.yml), la app solo la lee.
+-- -----------------------------------------------------------------------------
+create table if not exists public.tasa_bcv (
+  id          smallint primary key default 1 check (id = 1),
+  eur_bs      numeric(18, 8) not null check (eur_bs > 0),
+  actualizada timestamptz not null default now()
+);
+
+comment on table public.tasa_bcv is 'Tasa EUR->Bs del BCV. Fila única (id=1). La escribe el cron scrape-tasa-bcv.';
+
+-- `actualizada` se refresca sola en cada escritura (el upsert no re-dispara el default).
+create or replace function public.touch_tasa_bcv()
+returns trigger language plpgsql as $$
+begin
+  new.actualizada := now();
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_touch_tasa_bcv on public.tasa_bcv;
+create trigger trg_touch_tasa_bcv
+  before insert or update on public.tasa_bcv
+  for each row execute function public.touch_tasa_bcv();
+
 
 -- =============================================================================
 --  CÁLCULO AUTOMÁTICO DE PAGOS
@@ -226,6 +254,7 @@ alter table public.gastos     replica identity full;
 alter table public.trips      enable row level security;
 alter table public.passengers enable row level security;
 alter table public.gastos     enable row level security;
+alter table public.tasa_bcv   enable row level security;
 
 -- --- trips -------------------------------------------------------------------
 drop policy if exists "MVP: lectura pública de viajes"  on public.trips;
@@ -269,6 +298,21 @@ create policy "MVP: escritura pública de gastos"
   using (true)
   with check (true);
 
+-- --- tasa_bcv --------------------------------------------------------------
+drop policy if exists "MVP: lectura pública de la tasa" on public.tasa_bcv;
+create policy "MVP: lectura pública de la tasa"
+  on public.tasa_bcv for select
+  to anon, authenticated
+  using (true);
+
+-- La usa el cron con la anon key. Al endurecer la RLS, mover a service_role.
+drop policy if exists "MVP: escritura pública de la tasa" on public.tasa_bcv;
+create policy "MVP: escritura pública de la tasa"
+  on public.tasa_bcv for all
+  to anon, authenticated
+  using (true)
+  with check (true);
+
 
 -- =============================================================================
 --  SEED — datos de ejemplo para el viaje "Pico Naiguatá"
@@ -284,6 +328,11 @@ select 'Pico Naiguatá', current_date + 14, 40, 10
 where not exists (
   select 1 from public.trips where destino = 'Pico Naiguatá'
 );
+
+-- Tasa BCV inicial (la reemplaza el cron en su primera corrida).
+insert into public.tasa_bcv (id, eur_bs)
+values (1, 947.29802151)
+on conflict (id) do nothing;
 
 
 -- =============================================================================
