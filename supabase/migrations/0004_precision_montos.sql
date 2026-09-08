@@ -14,6 +14,10 @@
 --  2 decimales; si necesitas exactitud en ellas, vuelve a registrarlas.
 -- =============================================================================
 
+-- El trigger nombra `monto_abonado` en su definición (update of ...), así que
+-- hay que soltarlo antes de cambiar el tipo de la columna.
+drop trigger if exists trg_recalc_pago on public.passengers;
+
 alter table public.passengers
   alter column monto_abonado   type numeric(14, 6),
   alter column monto_pendiente type numeric(14, 6);
@@ -51,6 +55,10 @@ begin
   return new;
 end;
 $$;
+
+create trigger trg_recalc_pago
+  before insert or update of monto_abonado, id_viaje on public.passengers
+  for each row execute function public.recalc_pago_pasajero();
 
 -- Reaplica el recálculo a los pasajeros existentes.
 update public.passengers set monto_abonado = monto_abonado;
