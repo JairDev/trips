@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist_Mono } from "next/font/google";
+import { FeedbackProvider } from "@/components/Feedback";
 import "./globals.css";
 
 const geistMono = Geist_Mono({
@@ -24,7 +25,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="es" className={`${geistMono.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <FeedbackProvider>{children}</FeedbackProvider>
+      </body>
     </html>
   );
 }

@@ -184,7 +184,7 @@ export default function SeatCounterHeader({
                   disabled={reiniciando}
                   className={BTN_HEADER}
                 >
-                  {reiniciando ? "..." : "nuevo viaje"}
+                  nuevo viaje
                 </button>
               )}
               {onExport && (

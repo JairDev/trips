@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useFeedback } from "@/components/Feedback";
 import { formatBs, formatEuro } from "@/lib/format";
 import {
   ESTADOS_PAGO,
@@ -64,18 +65,31 @@ function AbonadoTexto({
 }
 
 export default function PasajerosList({ passengers, tasaEuro, onEliminar }: Props) {
+  const { confirmar, toast } = useFeedback();
   const [filtroEstado, setFiltroEstado] = useState<FiltroEstado>("Todos");
   const [filtroGrupo, setFiltroGrupo] = useState<FiltroGrupo>("Todos");
   const [eliminando, setEliminando] = useState<string | null>(null);
 
   async function pedirEliminar(p: Passenger) {
     if (eliminando) return;
-    if (!window.confirm(`¿Eliminar a ${p.nombre_completo} de la lista?`)) return;
+    const ok = await confirmar({
+      titulo: "Eliminar pasajero",
+      mensaje: (
+        <>
+          Se quitará a <strong className="text-ink">{p.nombre_completo}</strong>{" "}
+          de la lista.
+        </>
+      ),
+      textoConfirmar: "Eliminar",
+      peligroso: true,
+    });
+    if (!ok) return;
+
     setEliminando(p.id_viajero);
     try {
       await onEliminar(p.id_viajero);
     } catch (err) {
-      window.alert(
+      toast(
         err instanceof Error ? err.message : "No se pudo eliminar el pasajero.",
       );
     } finally {

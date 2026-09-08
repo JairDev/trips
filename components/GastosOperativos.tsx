@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useFeedback } from "@/components/Feedback";
 import Segmento from "@/components/Segmento";
 import { formatBs, formatEuro } from "@/lib/format";
 import { DECIMALES_EUR, redondear, redondear2 } from "@/lib/pagos";
@@ -27,6 +28,7 @@ export default function GastosOperativos({
   onAgregar,
   onEliminar,
 }: Props) {
+  const { confirmar, toast } = useFeedback();
   const [concepto, setConcepto] = useState("");
   const [moneda, setMoneda] = useState<Moneda>("Bs");
   const [monto, setMonto] = useState("");
@@ -84,12 +86,26 @@ export default function GastosOperativos({
 
   async function handleEliminar(g: Gasto) {
     if (eliminando) return;
-    if (!window.confirm(`¿Eliminar el gasto "${g.concepto}"?`)) return;
+    const ok = await confirmar({
+      titulo: "Eliminar gasto",
+      mensaje: (
+        <>
+          Se eliminará el gasto{" "}
+          <strong className="text-ink">{g.concepto}</strong>.
+        </>
+      ),
+      textoConfirmar: "Eliminar",
+      peligroso: true,
+    });
+    if (!ok) return;
+
     setEliminando(g.id_gasto);
     try {
       await onEliminar(g.id_gasto);
     } catch (err) {
-      window.alert(err instanceof Error ? err.message : "No se pudo eliminar el gasto.");
+      toast(
+        err instanceof Error ? err.message : "No se pudo eliminar el gasto.",
+      );
     } finally {
       setEliminando(null);
     }

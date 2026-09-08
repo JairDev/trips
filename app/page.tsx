@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import AccionesFab from "@/components/AccionesFab";
 import AjustesViaje from "@/components/AjustesViaje";
 import CajaTotal from "@/components/CajaTotal";
+import { useFeedback } from "@/components/Feedback";
 import GastosOperativos from "@/components/GastosOperativos";
 import PasajerosList from "@/components/PasajerosList";
 import RegistroForm from "@/components/RegistroForm";
@@ -32,6 +33,7 @@ type Estado = "cargando" | "listo" | "error";
 type Pestana = "pasajeros" | "finanzas";
 
 export default function DashboardPage() {
+  const { confirmar, toast } = useFeedback();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [passengers, setPassengers] = useState<Passenger[]>([]);
   const [gastos, setGastos] = useState<Gasto[]>([]);
@@ -287,13 +289,26 @@ export default function DashboardPage() {
 
   const nuevoViaje = useCallback(async () => {
     if (!trip) return;
-    const ok = window.confirm(
-      `¿Empezar un viaje nuevo?\n\n` +
-        `Se borrarán ${passengers.length} pasajero(s) y ${gastos.length} gasto(s) ` +
-        `de "${trip.destino}". Esta acción no se puede deshacer.\n\n` +
-        `Los puestos del bus y el precio del paquete se conservan; ajústalos ` +
-        `para la próxima salida.`,
-    );
+    const ok = await confirmar({
+      titulo: "Empezar un viaje nuevo",
+      mensaje: (
+        <>
+          <p>
+            Se borrarán <strong className="text-ink">{passengers.length}</strong>{" "}
+            pasajero(s) y <strong className="text-ink">{gastos.length}</strong>{" "}
+            gasto(s) de “{trip.destino}”.
+          </p>
+          <p className="mt-2">
+            Los puestos del bus y el precio del paquete se conservan.
+          </p>
+          <p className="mt-2 font-medium text-danger-hover">
+            Esta acción no se puede deshacer.
+          </p>
+        </>
+      ),
+      textoConfirmar: "Borrar y empezar",
+      peligroso: true,
+    });
     if (!ok) return;
 
     try {
@@ -301,14 +316,15 @@ export default function DashboardPage() {
       setPassengers([]);
       setGastos([]);
       setPestana("pasajeros");
+      toast("Viaje reiniciado.", "ok");
     } catch (err) {
-      window.alert(
+      toast(
         err instanceof Error
           ? err.message
           : "No se pudo reiniciar el viaje. Intenta de nuevo.",
       );
     }
-  }, [trip, passengers.length, gastos.length]);
+  }, [trip, passengers.length, gastos.length, confirmar, toast]);
 
   async function exportar() {
     if (!trip || passengers.length === 0) return;
