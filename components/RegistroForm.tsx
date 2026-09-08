@@ -146,7 +146,7 @@ export default function RegistroForm({
         </label>
 
         <label className="block">
-          <span className={LABEL}>Grupo responsable</span>
+          <span className={LABEL}>Grupo</span>
           <select
             className={CAMPO}
             value={grupo}
