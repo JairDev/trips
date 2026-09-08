@@ -2,7 +2,12 @@
 
 import { useId, useState } from "react";
 import Segmento from "@/components/Segmento";
-import { formatBs, formatEuro } from "@/lib/format";
+import {
+  formatBs,
+  formatEuro,
+  formatMontoMascara,
+  parseMontoMascara,
+} from "@/lib/format";
 import { calcularPendiente, derivarEstadoPago, redondear2 } from "@/lib/pagos";
 import {
   GRUPOS,
@@ -44,7 +49,13 @@ export default function RegistroForm({
   // monto en Pago Móvil hay que convertirlo Bs -> € antes de compararlo o
   // guardarlo.
   const esPagoMovil = metodo === "Pago Móvil";
-  const abonadoIngresado = redondear2(Math.max(0, Number(abonado) || 0));
+  // En Pago Móvil el campo usa máscara "11.367,58"; en Efectivo es un número simple.
+  const abonadoIngresado = redondear2(
+    Math.max(
+      0,
+      esPagoMovil ? parseMontoMascara(abonado) : Number(abonado) || 0,
+    ),
+  );
   const sinTasaParaConvertir = esPagoMovil && abonadoIngresado > 0 && !tasaEuro;
   const montoAbonado =
     esPagoMovil && tasaEuro
@@ -171,16 +182,29 @@ export default function RegistroForm({
             <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-body">
               {esPagoMovil ? "Bs" : "€"}
             </span>
-            <input
-              type="number"
-              inputMode="decimal"
-              min={0}
-              step="0.01"
-              className={`${CAMPO} ${esPagoMovil ? "pl-9" : "pl-7"}`}
-              value={abonado}
-              onChange={(e) => setAbonado(e.target.value)}
-              placeholder="0.00"
-            />
+            {esPagoMovil ? (
+              <input
+                type="text"
+                inputMode="numeric"
+                className={`${CAMPO} pl-9`}
+                value={abonado}
+                onChange={(e) =>
+                  setAbonado(formatMontoMascara(e.target.value))
+                }
+                placeholder="0,00"
+              />
+            ) : (
+              <input
+                type="number"
+                inputMode="decimal"
+                min={0}
+                step="0.01"
+                className={`${CAMPO} pl-7`}
+                value={abonado}
+                onChange={(e) => setAbonado(e.target.value)}
+                placeholder="0.00"
+              />
+            )}
           </div>
           {esPagoMovil ? (
             tasaEuro ? (

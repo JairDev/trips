@@ -16,6 +16,25 @@ export function formatBs(valor: number): string {
   return `Bs ${formatMonto(valor)}`;
 }
 
+/**
+ * Máscara de entrada estilo calculadora: se teclean solo dígitos y los dos
+ * últimos son los céntimos. "1136758" -> "11.367,58"; "" -> "".
+ */
+export function formatMontoMascara(entrada: string): string {
+  const digitos = entrada.replace(/\D/g, '').replace(/^0+/, '');
+  if (digitos === '') return '';
+  const centimos = digitos.slice(-2).padStart(2, '0');
+  const enteros = digitos.slice(0, -2) || '0';
+  const conMiles = enteros.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return `${conMiles},${centimos}`;
+}
+
+/** Inverso de {@link formatMontoMascara}: "11.367,58" -> 11367.58. */
+export function parseMontoMascara(texto: string): number {
+  const digitos = texto.replace(/\D/g, '');
+  return digitos === '' ? 0 : Number(digitos) / 100;
+}
+
 /** Fecha 'YYYY-MM-DD' -> 'sáb, 14 sep 2026' sin desfases de zona horaria. */
 export function formatFecha(iso: string): string {
   const [y, m, d] = iso.split('-').map(Number);
