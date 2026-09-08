@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import AccionesFab from "@/components/AccionesFab";
 import AjustesViaje from "@/components/AjustesViaje";
 import CajaTotal from "@/components/CajaTotal";
-import ExportFab from "@/components/ExportFab";
 import GastosOperativos from "@/components/GastosOperativos";
 import PasajerosList from "@/components/PasajerosList";
 import RegistroForm from "@/components/RegistroForm";
@@ -413,7 +413,11 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      <ExportFab onClick={exportar} disabled={registrados === 0} />
+      <AccionesFab
+        onExport={exportar}
+        onNuevoViaje={nuevoViaje}
+        exportDisabled={registrados === 0}
+      />
     </>
   );
 }
