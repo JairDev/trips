@@ -212,26 +212,21 @@ export default function RegistroForm({
               />
             )}
           </div>
-          {esPagoMovil ? (
-            tasaEuro ? (
-              abonadoIngresado > 0 && (
-                <p className="mt-1 text-sm text-stone">
-                  ≈ {formatEuro(montoAbonado)}
-                </p>
-              )
-            ) : (
-              <p className="mt-1 text-sm text-warning-active">
-                [!] Tasa BCV no disponible; no se puede convertir a euros.
-              </p>
-            )
-          ) : (
-            tasaEuro &&
-            montoAbonado > 0 && (
-              <p className="mt-1 text-sm text-stone">
-                ≈ {formatBs(montoAbonado * tasaEuro)}
-              </p>
-            )
-          )}
+          {/* Línea de conversión siempre presente (≈ €0,00 por defecto) para
+              que no salte el layout al escribir. */}
+          <p
+            className={`mt-1 text-sm ${
+              esPagoMovil && !tasaEuro ? "text-warning-active" : "text-stone"
+            }`}
+          >
+            {esPagoMovil
+              ? tasaEuro
+                ? `≈ ${formatEuro(montoAbonado)}`
+                : "[!] Tasa BCV no disponible; no se puede convertir a euros."
+              : tasaEuro
+                ? `≈ ${formatBs(montoAbonado * tasaEuro)}`
+                : " "}
+          </p>
         </label>
 
         {error && (

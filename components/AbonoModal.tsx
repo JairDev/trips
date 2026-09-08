@@ -163,13 +163,20 @@ export default function AbonoModal({
                 />
               </div>
             </div>
-            {esBs && ingresado > 0 && (
-              <p className="mt-1 text-sm text-stone">
-                {tasaEuro
+            {/* Línea de conversión siempre presente para que no salte el layout. */}
+            <p
+              className={`mt-1 text-sm ${
+                esBs && !tasaEuro ? "text-warning-active" : "text-stone"
+              }`}
+            >
+              {esBs
+                ? tasaEuro
                   ? `≈ ${formatEuro(ingresadoEuro)}`
-                  : "[!] Tasa BCV no disponible."}
-              </p>
-            )}
+                  : "[!] Tasa BCV no disponible."
+                : tasaEuro
+                  ? `≈ ${formatBs(ingresado * tasaEuro)}`
+                  : " "}
+            </p>
           </div>
 
           <div className="rounded-sm border border-hairline bg-surface-soft p-3 text-sm">
