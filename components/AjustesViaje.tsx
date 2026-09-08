@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { formatBs, formatEuro } from "@/lib/format";
-import { BTN_SECONDARY, CARD, SECTION_TITLE } from "@/lib/ui";
+import { CARD, SECTION_TITLE } from "@/lib/ui";
 
 // Mismo box para el valor mostrado y el input: idéntico alto -> al pasar a
 // edición la UI no se mueve ni un píxel.
@@ -170,7 +170,6 @@ interface Props {
   tasaEuro: number | null;
   onGuardarPuestos: (nuevo: number) => Promise<void>;
   onGuardarPrecio: (nuevo: number) => Promise<void>;
-  onNuevoViaje: () => Promise<void>;
 }
 
 /**
@@ -186,20 +185,7 @@ export default function AjustesViaje({
   tasaEuro,
   onGuardarPuestos,
   onGuardarPrecio,
-  onNuevoViaje,
 }: Props) {
-  const [reiniciando, setReiniciando] = useState(false);
-
-  async function reiniciar() {
-    if (reiniciando) return;
-    setReiniciando(true);
-    try {
-      await onNuevoViaje();
-    } finally {
-      setReiniciando(false);
-    }
-  }
-
   return (
     <section className={CARD}>
       <h2 className={SECTION_TITLE}>Ajustes del viaje</h2>
@@ -239,15 +225,6 @@ export default function AjustesViaje({
           ? `Tasa BCV: ${formatBs(tasaEuro)} / €`
           : "[!] Tasa BCV no disponible; se muestra solo en euros."}
       </p>
-
-      <button
-        type="button"
-        onClick={reiniciar}
-        disabled={reiniciando}
-        className={`${BTN_SECONDARY} mt-3 w-full disabled:opacity-50`}
-      >
-        {reiniciando ? "Reiniciando..." : "Nuevo viaje (borra pasajeros y gastos)"}
-      </button>
     </section>
   );
 }

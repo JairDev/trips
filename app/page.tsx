@@ -354,6 +354,7 @@ export default function DashboardPage() {
         registrados={registrados}
         onExport={exportar}
         exportDisabled={registrados === 0}
+        onNuevoViaje={nuevoViaje}
       />
 
       <main className="mx-auto w-full max-w-[84rem] flex-1 px-4 pt-4 pb-28 lg:px-8 lg:pt-6 lg:pb-12">
@@ -366,7 +367,6 @@ export default function DashboardPage() {
               tasaEuro={tasaEuro}
               onGuardarPuestos={guardarPuestos}
               onGuardarPrecio={guardarPrecio}
-              onNuevoViaje={nuevoViaje}
             />
             <RegistroForm
               onSubmit={agregarPasajero}

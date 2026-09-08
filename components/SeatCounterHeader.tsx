@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { formatFecha } from "@/lib/format";
 
 interface Props {
@@ -7,7 +10,12 @@ interface Props {
   registrados: number;
   onExport?: () => void;
   exportDisabled?: boolean;
+  onNuevoViaje?: () => void | Promise<void>;
 }
+
+const BTN_HEADER =
+  "shrink-0 rounded-sm border border-hairline-strong px-4 py-2 text-sm " +
+  "font-medium text-ink active:bg-surface-soft disabled:text-ash";
 
 /**
  * Cabecera fija con el balance de cupos. Estilo terminal: lienzo crema, tinta,
@@ -22,7 +30,20 @@ export default function SeatCounterHeader({
   registrados,
   onExport,
   exportDisabled = false,
+  onNuevoViaje,
 }: Props) {
+  const [reiniciando, setReiniciando] = useState(false);
+
+  async function reiniciar() {
+    if (reiniciando || !onNuevoViaje) return;
+    setReiniciando(true);
+    try {
+      await onNuevoViaje();
+    } finally {
+      setReiniciando(false);
+    }
+  }
+
   const disponibles = puestosTotales - registrados;
   const lleno = disponibles <= 0;
   const casiLleno = !lleno && disponibles <= 4;
@@ -67,15 +88,29 @@ export default function SeatCounterHeader({
             </span>
           </div>
 
-          {onExport && (
-            <button
-              type="button"
-              onClick={onExport}
-              disabled={exportDisabled}
-              className="hidden shrink-0 rounded-sm border border-hairline-strong px-4 py-2 text-sm font-medium text-ink active:bg-surface-soft disabled:text-ash lg:inline-block"
-            >
-              [↓] exportar a excel
-            </button>
+          {(onExport || onNuevoViaje) && (
+            <div className="hidden shrink-0 gap-2 lg:flex">
+              {onNuevoViaje && (
+                <button
+                  type="button"
+                  onClick={reiniciar}
+                  disabled={reiniciando}
+                  className={BTN_HEADER}
+                >
+                  {reiniciando ? "..." : "nuevo viaje"}
+                </button>
+              )}
+              {onExport && (
+                <button
+                  type="button"
+                  onClick={onExport}
+                  disabled={exportDisabled}
+                  className={BTN_HEADER}
+                >
+                  [↓] exportar a excel
+                </button>
+              )}
+            </div>
           )}
         </div>
 
