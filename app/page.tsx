@@ -204,7 +204,17 @@ export default function DashboardPage() {
   }, [tripId]);
 
   const registrados = passengers.length;
-  const lleno = trip ? registrados >= trip.puestos_totales : false;
+  const puestosDefinidos = trip ? trip.puestos_totales > 0 : false;
+  const precioDefinido = trip ? trip.precio_por_persona > 0 : false;
+  const lleno = puestosDefinidos && registrados >= (trip?.puestos_totales ?? 0);
+  // El registro solo se habilita con puestos y precio ya definidos.
+  const registroDeshabilitado =
+    !puestosDefinidos || !precioDefinido || lleno;
+  const motivoRegistro = !puestosDefinidos
+    ? "Define los puestos del bus"
+    : !precioDefinido
+      ? "Define el precio del paquete"
+      : "Autobús completo";
   const zonas = useMemo(() => agruparPorZona(passengers), [passengers]);
   const totalRecaudado = useMemo(
     () => passengers.reduce((s, p) => s + p.monto_abonado, 0),
@@ -413,12 +423,8 @@ export default function DashboardPage() {
               onSubmit={agregarPasajero}
               precioPorPersona={trip.precio_por_persona}
               tasaEuro={tasaEuro}
-              disabled={lleno}
-              disabledLabel={
-                trip.puestos_totales <= 0
-                  ? "Define los puestos del bus primero"
-                  : "Autobús completo"
-              }
+              disabled={registroDeshabilitado}
+              disabledLabel={motivoRegistro}
             />
           </div>
 

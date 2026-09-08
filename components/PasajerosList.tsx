@@ -168,7 +168,7 @@ export default function PasajerosList({
       <ul className="mt-3 divide-y divide-hairline border-t border-hairline">
         {visibles.length === 0 && (
           <li className="py-6 text-center text-sm text-stone">
-            Sin pasajeros para este filtro.
+            Sin pasajeros
           </li>
         )}
         {visibles.map((p) => (
