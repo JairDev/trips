@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Segmento from "@/components/Segmento";
 import { formatBs, formatEuro } from "@/lib/format";
-import { redondear2 } from "@/lib/pagos";
+import { DECIMALES_EUR, redondear, redondear2 } from "@/lib/pagos";
 import type { Gasto, NuevoGasto } from "@/lib/types";
 import { BTN_PRIMARY, CAMPO, CARD, SECTION_TITLE } from "@/lib/ui";
 
@@ -38,7 +38,11 @@ export default function GastosOperativos({
   const montoIngresado = redondear2(Math.max(0, Number(monto) || 0));
   const sinTasaParaConvertir = esBs && montoIngresado > 0 && !tasaEuro;
   const montoEuro =
-    esBs && tasaEuro ? redondear2(montoIngresado / tasaEuro) : !esBs ? montoIngresado : 0;
+    esBs && tasaEuro
+      ? redondear(montoIngresado / tasaEuro, DECIMALES_EUR)
+      : !esBs
+        ? montoIngresado
+        : 0;
 
   function cambiarMoneda(nueva: Moneda) {
     setMoneda(nueva);

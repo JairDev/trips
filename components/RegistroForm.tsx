@@ -8,7 +8,13 @@ import {
   formatMontoMascara,
   parseMontoMascara,
 } from "@/lib/format";
-import { calcularPendiente, derivarEstadoPago, redondear2 } from "@/lib/pagos";
+import {
+  calcularPendiente,
+  DECIMALES_EUR,
+  derivarEstadoPago,
+  redondear,
+  redondear2,
+} from "@/lib/pagos";
 import {
   GRUPOS,
   METODOS_PAGO,
@@ -59,7 +65,7 @@ export default function RegistroForm({
   const sinTasaParaConvertir = esPagoMovil && abonadoIngresado > 0 && !tasaEuro;
   const montoAbonado =
     esPagoMovil && tasaEuro
-      ? redondear2(abonadoIngresado / tasaEuro)
+      ? redondear(abonadoIngresado / tasaEuro, DECIMALES_EUR)
       : esPagoMovil
         ? 0 // sin tasa no se puede convertir; se bloquea el envío más abajo
         : abonadoIngresado;

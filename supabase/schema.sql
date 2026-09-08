@@ -51,13 +51,15 @@ create table if not exists public.passengers (
                     check (metodo_pago in ('Pago Móvil', 'Efectivo')),
   estado_pago     text not null default 'Pendiente'
                     check (estado_pago in ('Pendiente', 'Abonado', 'Completo')),
-  monto_abonado   numeric(10, 2) not null default 0 check (monto_abonado   >= 0),
-  monto_pendiente numeric(10, 2) not null default 0 check (monto_pendiente >= 0),
+  -- 6 decimales: los montos convertidos Bs -> € necesitan precisión para que
+  -- el número en bolívares vuelva exacto al mostrarlo (ver lib/pagos.ts).
+  monto_abonado   numeric(14, 6) not null default 0 check (monto_abonado   >= 0),
+  monto_pendiente numeric(14, 6) not null default 0 check (monto_pendiente >= 0),
   created_at      timestamptz not null default now()
 );
 
 comment on table public.passengers is 'Excursionistas inscritos en cada salida. Base común para los 3 grupos.';
-comment on column public.passengers.monto_abonado is 'Único monto que introduce el coordinador. El resto se calcula.';
+comment on column public.passengers.monto_abonado is 'Único monto que introduce el coordinador. El resto se calcula. En euros (6 decimales).';
 comment on column public.passengers.monto_pendiente is 'Calculado automáticamente por trigger: precio_por_persona del viaje − monto_abonado.';
 comment on column public.passengers.estado_pago is 'Calculado automáticamente por trigger a partir de los montos.';
 
@@ -83,11 +85,11 @@ create table if not exists public.gastos (
                references public.trips (id_viaje)
                on delete cascade,
   concepto   text not null,
-  monto      numeric(10, 2) not null default 0 check (monto >= 0),
+  monto      numeric(14, 6) not null default 0 check (monto >= 0),
   created_at timestamptz not null default now()
 );
 
-comment on table public.gastos is 'Gastos operativos del viaje. Monto siempre en euros, igual que passengers.';
+comment on table public.gastos is 'Gastos operativos del viaje. Monto en euros (6 decimales), igual que passengers.';
 
 create index if not exists gastos_id_viaje_idx
   on public.gastos (id_viaje);
@@ -118,15 +120,19 @@ begin
 
   precio := coalesce(precio, 0);
 
-  new.monto_abonado   := round(greatest(0, coalesce(new.monto_abonado, 0)), 2);
-  new.monto_pendiente := round(greatest(0, precio - new.monto_abonado), 2);
+  -- 6 decimales: no perder precisión en montos convertidos desde bolívares.
+  new.monto_abonado := round(greatest(0, coalesce(new.monto_abonado, 0)), 6);
 
   if new.monto_abonado <= 0 then
-    new.estado_pago := 'Pendiente';
-  elsif precio > 0 and new.monto_abonado >= precio then
-    new.estado_pago := 'Completo';
+    new.estado_pago     := 'Pendiente';
+    new.monto_pendiente := round(precio, 6);
+  elsif precio > 0 and round(new.monto_abonado, 2) >= precio then
+    -- Pagó el paquete completo (tolerancia de 1 céntimo por redondeos de conversión).
+    new.estado_pago     := 'Completo';
+    new.monto_pendiente := 0;
   else
-    new.estado_pago := 'Abonado';
+    new.estado_pago     := 'Abonado';
+    new.monto_pendiente := round(greatest(0, precio - new.monto_abonado), 6);
   end if;
 
   return new;

@@ -11,6 +11,7 @@
 > - [`migrations/0001_precio_paquete.sql`](./migrations/0001_precio_paquete.sql) — añade `trips.precio_por_persona` y los triggers que calculan `monto_pendiente` / `estado_pago` automáticamente. Ajusta el precio dentro del script.
 > - [`migrations/0002_grupos.sql`](./migrations/0002_grupos.sql) — renombra los grupos aliados.
 > - [`migrations/0003_gastos.sql`](./migrations/0003_gastos.sql) — crea la tabla `gastos` (transporte, snacks, etc.).
+> - [`migrations/0004_precision_montos.sql`](./migrations/0004_precision_montos.sql) — sube a 6 decimales los montos en euros para que la conversión a bolívares vuelva exacta.
 
 Esto crea:
 
